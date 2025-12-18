@@ -2,7 +2,7 @@
     <article
         class="relative overflow-hidden transition-all duration-300 bg-white border-2 border-gray-200 shadow-lg cursor-pointer group rounded-2xl hover:shadow-2xl hover:border-primary"
         :style="cssVars"
-        @click="$emit('click', property)"
+        @click="handleClick"
     >
         <!-- Badge destacado -->
         <div
@@ -60,7 +60,7 @@
             <!-- Encabezado con tipo y código -->
             <div class="flex items-center justify-between gap-2 mb-3">
                 <span class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-100 text-primary">
-                    {{ property.type.nombre }}
+                    {{ property.type?.nombre }}
                 </span>
                 <span
                     class="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg"
@@ -81,7 +81,7 @@
                 <p class="text-3xl font-bold text-gray-900">
                     {{ formatPrice(property.price?.precio) }}
                     <span class="text-base font-semibold text-gray-600">
-                        {{ property.price?.currency?.code }}
+                        {{ property.price?.currency?.code || 'USD' }}
                     </span>
                 </p>
             </div>
@@ -150,13 +150,14 @@
                         :class="getStatusClass(property.status?.status?.nombre)"
                     >
                         <span class="w-2 h-2 bg-current rounded-full animate-pulse"></span>
-                        {{ property.status?.status?.nombre }}
+                        {{ property.status?.status?.nombre || 'Disponible' }}
                     </div>
                 </div>
 
                 <!-- Botón Ver detalles -->
                 <button
                     class="flex items-center gap-1 text-sm font-bold transition-all duration-200 text-primary hover:gap-2"
+                    @click.stop="handleClick"
                 >
                     Ver detalles
                     <ChevronRight
@@ -197,8 +198,15 @@ const props = defineProps({
         default: '#3B82F6',
     },
 });
-console.log(props.property);
+
+// Definir el emit correctamente
 const emit = defineEmits(['click']);
+
+// Método para manejar el clic
+const handleClick = () => {
+    console.log('PropertyCard clicked:', props.property.id); // Debug
+    emit('click');
+};
 
 // CSS Variables dinámicas
 const cssVars = computed(() => ({

@@ -10,40 +10,27 @@
         :error="error"
         :pagination="pagination"
         :primary-color="siteSettings.color_primario || '#3B82F6'"
-        @open-modal="openPropertyModal"
         @reset-filters="resetFilters"
         @change-page="changePage"
-    />
-
-    <PropertyModal
-        v-if="showPropertyModal"
-        :property="selectedProperty"
-        :loading="modalLoading"
-        :error="modalError"
-        :primary-color="siteSettings.color_primario || '#3B82F6'"
-        @close="closePropertyModal"
-        @submit-form="submitForm"
+        @view-property="viewProperty"
     />
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
-import { getProperties, getProperty } from '@/services/PropertiesService';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { getProperties } from '@/services/PropertiesService';
 import { useSiteSettings } from '@/composables/useSiteSettings';
 import HeroSection from '@/components/web/Home/HeroSection.vue';
 import AdvancedSearchFilters from '@/components/web/Home/AdvancedSearchFilters.vue';
 import PropertyGrid from '@/components/web/Home/PropertyGrid.vue';
-import PropertyModal from '@/components/web/Home/PropertyModal.vue';
 
 const { siteSettings } = useSiteSettings();
+const router = useRouter();
 
 // Estados
 const loading = ref(true);
 const error = ref(null);
-const showPropertyModal = ref(false);
-const modalLoading = ref(false);
-const modalError = ref(null);
-const selectedProperty = ref({});
 const properties = ref([]);
 const pagination = ref({
     current_page: 1,
@@ -76,7 +63,6 @@ const fetchProperties = async () => {
 
         const params = new URLSearchParams();
 
-        // Agregar todos los filtros
         Object.keys(filters.value).forEach(key => {
             if (filters.value[key] && key !== 'features') {
                 if (key === 'property_type') {
@@ -89,14 +75,13 @@ const fetchProperties = async () => {
             }
         });
 
-        // Agregar features
         if (filters.value.features.length > 0) {
             params.append('features', filters.value.features.join(','));
         }
 
         const response = await getProperties(`?${params.toString()}`);
         properties.value = response.data.data || response.data;
-        console.log(properties.value);
+
         if (response.data.meta) {
             pagination.value = {
                 current_page: response.data.meta.current_page,
@@ -113,31 +98,9 @@ const fetchProperties = async () => {
     }
 };
 
-const fetchPropertyDetails = async id => {
-    try {
-        modalLoading.value = true;
-        modalError.value = null;
-        const response = await getProperty(id);
-        selectedProperty.value = response.data;
-    } catch (err) {
-        modalError.value = 'Error al cargar los detalles de la propiedad';
-        console.error('Error fetching property details:', err);
-    } finally {
-        modalLoading.value = false;
-    }
-};
-
-const openPropertyModal = property => {
-    showPropertyModal.value = true;
-    selectedProperty.value = property;
-    fetchPropertyDetails(property.id);
-    document.body.style.overflow = 'hidden';
-};
-
-const closePropertyModal = () => {
-    showPropertyModal.value = false;
-    selectedProperty.value = {};
-    document.body.style.overflow = '';
+const viewProperty = propertyId => {
+    console.log('Navigating to property:', propertyId); // Debug
+    router.push(`/propiedad/${propertyId}`);
 };
 
 const applyFilters = newFilters => {
@@ -172,17 +135,7 @@ const changePage = page => {
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
 };
 
-const submitForm = formData => {
-    console.log('Form submitted:', formData);
-    alert('Mensaje enviado exitosamente. Nos contactaremos pronto.');
-    closePropertyModal();
-};
-
 onMounted(() => {
     fetchProperties();
-});
-
-onBeforeUnmount(() => {
-    document.body.style.overflow = '';
 });
 </script>

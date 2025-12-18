@@ -1,3 +1,5 @@
+import PropertyDetails from '@/components/web/Home/PropertyDetails.vue';
+import PropertyModal from '@/components/web/Home/PropertyModal.vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import LayoutWeb from '@/layouts/web/LayoutWeb.vue';
 import DashboardAdmin from '@/pages/admin/DashboardAdmin.vue';
@@ -12,7 +14,7 @@ import HomePage from '@/pages/web/HomePage.vue';
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
-    history: createWebHistory('/'),
+    history: createWebHistory(''),
     routes: [
         {
             path: '/login',
@@ -32,6 +34,11 @@ const router = createRouter({
                     path: '/',
                     name: 'home',
                     component: HomePage,
+                },
+                {
+                    path: '/propiedad/:id', // Cambiar de /propiedades a /propiedad
+                    name: 'PropertyDetail',
+                    component: PropertyModal,
                 },
             ],
         },

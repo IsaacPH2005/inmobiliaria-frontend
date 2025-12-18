@@ -163,24 +163,54 @@
                 />
             </div>
 
-            <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700"> Latitud </label>
-                <input
-                    v-model.number="form.latitud"
-                    type="number"
-                    step="0.00000001"
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
-            </div>
+            <!-- NUEVO: Google Maps URL con vista previa -->
+            <div class="md:col-span-2">
+                <label class="block mb-2 text-sm font-medium text-neutral-700">
+                    🗺️ Enlace de Google Maps
+                </label>
+                <div class="space-y-3">
+                    <input
+                        v-model="form.google_maps_url"
+                        type="url"
+                        placeholder="https://maps.app.goo.gl/xxx o https://www.google.com/maps/..."
+                        class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500">
+                        💡 Copia el enlace desde Google Maps usando el botón "Compartir" → "Copiar
+                        enlace"
+                    </p>
 
-            <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700"> Longitud </label>
-                <input
-                    v-model.number="form.longitud"
-                    type="number"
-                    step="0.00000001"
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                    <!-- Vista previa del mapa -->
+                    <div v-if="form.google_maps_url && isValidGoogleMapsUrl" class="mt-3">
+                        <p class="mb-2 text-sm font-semibold text-gray-700">Vista previa:</p>
+                        <div class="overflow-hidden border-2 border-gray-200 rounded-lg">
+                            <iframe
+                                :src="getMapEmbedUrl"
+                                width="100%"
+                                height="300"
+                                style="border: 0"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                class="w-full"
+                            ></iframe>
+                        </div>
+                        <a
+                            :href="form.google_maps_url"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center gap-2 px-4 py-2 mt-2 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+                        >
+                            <MapPin :size="16" />
+                            Abrir en Google Maps
+                        </a>
+                    </div>
+                    <div
+                        v-else-if="form.google_maps_url && !isValidGoogleMapsUrl"
+                        class="p-3 text-sm text-yellow-700 border border-yellow-200 rounded-lg bg-yellow-50"
+                    >
+                        ⚠️ La URL no parece ser válida. Debe ser un enlace de Google Maps.
+                    </div>
+                </div>
             </div>
 
             <!-- Características -->
@@ -598,8 +628,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue';
-import { Upload, X } from 'lucide-vue-next';
+import { ref, reactive, onMounted, watch, computed } from 'vue';
+import { Upload, X, MapPin } from 'lucide-vue-next';
 import { useToast } from 'vue-toastification';
 import { createProperty, updateProperty } from '@/services/PropertiesService';
 import { getFeaturesActives } from '@/services/FeaturesPropertyService';
@@ -642,8 +672,7 @@ const form = reactive({
     zona: '',
     direccion: '',
     direccion_completa: '',
-    latitud: null,
-    longitud: null,
+    google_maps_url: '', // NUEVO: Reemplaza latitud y longitud
     superficie_total: 0,
     superficie_construida: null,
     habitaciones: 0,
@@ -666,7 +695,36 @@ const form = reactive({
 });
 
 const images = ref([]);
-const imagesToDelete = ref([]); // NUEVO: Array para almacenar IDs de imágenes a eliminar
+const imagesToDelete = ref([]);
+
+// NUEVO: Validar URL de Google Maps
+const isValidGoogleMapsUrl = computed(() => {
+    if (!form.google_maps_url) return false;
+    return (
+        form.google_maps_url.includes('google.com/maps') ||
+        form.google_maps_url.includes('maps.app.goo.gl') ||
+        form.google_maps_url.includes('goo.gl/maps')
+    );
+});
+
+// NUEVO: Convertir URL a formato embebible
+const getMapEmbedUrl = computed(() => {
+    if (!form.google_maps_url) return '';
+
+    // Extraer coordenadas de la URL
+    const coordMatch = form.google_maps_url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (coordMatch) {
+        const lat = coordMatch[1];
+        const lng = coordMatch[2];
+        return `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
+    }
+
+    // Usar búsqueda por dirección
+    const address = encodeURIComponent(
+        form.direccion_completa || `${form.direccion}, ${form.zona}, ${form.ciudad}`
+    );
+    return `https://www.google.com/maps?q=${address}&output=embed`;
+});
 
 // Función para resetear el formulario
 const resetForm = () => {
@@ -691,8 +749,6 @@ const resetForm = () => {
         } else if (
             [
                 'precio_alquiler',
-                'latitud',
-                'longitud',
                 'superficie_construida',
                 'pisos',
                 'piso_ubicacion',
@@ -729,26 +785,22 @@ const handleImages = e => {
         });
     });
 
-    // Limpiar el input para permitir seleccionar el mismo archivo nuevamente
     e.target.value = '';
 };
 
-// Función para eliminar una imagen - MEJORADA
+// Función para eliminar una imagen
 const removeImage = index => {
     const imageToRemove = images.value[index];
 
-    // Si es una imagen existente (tiene ID), agregarla a la lista de eliminación
     if (imageToRemove.existing && imageToRemove.id) {
         imagesToDelete.value.push(imageToRemove.id);
         console.log('Imagen marcada para eliminar:', imageToRemove.id);
     }
 
-    // Revocar la URL del preview si es una nueva imagen
     if (!imageToRemove.existing && imageToRemove.preview) {
         URL.revokeObjectURL(imageToRemove.preview);
     }
 
-    // Eliminar la imagen del array
     images.value.splice(index, 1);
 
     toast.info(imageToRemove.existing ? 'Imagen marcada para eliminar' : 'Imagen removida');
@@ -857,12 +909,10 @@ const saveProperty = async () => {
     try {
         const formDataObj = new FormData();
 
-        // Agregar método PUT si estamos editando
         if (props.property) {
             formDataObj.append('_method', 'PUT');
         }
 
-        // Agregar todos los campos del formulario
         Object.keys(form).forEach(key => {
             if (key === 'additional_features') {
                 form[key].forEach((featureId, index) => {
@@ -871,9 +921,7 @@ const saveProperty = async () => {
             } else {
                 const value = form[key];
 
-                // Solo agregar el campo si tiene un valor válido
                 if (value !== null && value !== '' && value !== undefined) {
-                    // Convertir booleanos a 0 o 1 para Laravel
                     if (typeof value === 'boolean') {
                         formDataObj.append(key, value ? '1' : '0');
                     } else {
@@ -883,7 +931,6 @@ const saveProperty = async () => {
             }
         });
 
-        // NUEVO: Agregar imágenes a eliminar
         if (imagesToDelete.value.length > 0) {
             imagesToDelete.value.forEach((imageId, index) => {
                 formDataObj.append(`imagenes_a_eliminar[${index}]`, imageId);
@@ -891,7 +938,6 @@ const saveProperty = async () => {
             console.log('Imágenes a eliminar:', imagesToDelete.value);
         }
 
-        // Agregar solo las nuevas imágenes (no las existentes)
         let newImagesCount = 0;
         images.value.forEach(img => {
             if (!img.existing && img.file) {
@@ -912,11 +958,9 @@ const saveProperty = async () => {
         emit('saved');
         toast.success(`Propiedad ${props.property ? 'actualizada' : 'creada'} correctamente`);
 
-        // Resetear formulario después de guardar exitosamente
         if (!props.property) {
             resetForm();
         } else {
-            // Limpiar array de imágenes a eliminar después de guardar
             imagesToDelete.value = [];
         }
     } catch (error) {
@@ -945,10 +989,8 @@ watch(
     () => props.property,
     newProperty => {
         if (newProperty) {
-            // Limpiar array de imágenes a eliminar
             imagesToDelete.value = [];
 
-            // Mapear los datos anidados a la estructura plana del formulario
             form.property_type_id = newProperty.property_type_id || '';
             form.operation_type_id = newProperty.operation_type_id || '';
             form.user_id = newProperty.user_id || '';
@@ -957,25 +999,22 @@ watch(
             form.descripcion_corta = newProperty.descripcion_corta || '';
             form.notas_internas = newProperty.notas_internas || '';
 
-            // Datos de precio
             if (newProperty.price) {
                 form.precio = parseFloat(newProperty.price.precio) || 0;
                 form.currency_id = newProperty.price.currency_id || '';
                 form.precio_alquiler = parseFloat(newProperty.price.precio_alquiler) || null;
             }
 
-            // Datos de ubicación
+            // NUEVO: Datos de ubicación con google_maps_url
             if (newProperty.location) {
                 form.departamento = newProperty.location.departamento || '';
                 form.ciudad = newProperty.location.ciudad || '';
                 form.zona = newProperty.location.zona || '';
                 form.direccion = newProperty.location.direccion || '';
                 form.direccion_completa = newProperty.location.direccion_completa || '';
-                form.latitud = parseFloat(newProperty.location.latitud) || null;
-                form.longitud = parseFloat(newProperty.location.longitud) || null;
+                form.google_maps_url = newProperty.location.google_maps_url || '';
             }
 
-            // Datos de características
             if (newProperty.features) {
                 form.superficie_total = parseFloat(newProperty.features.superficie_total) || 0;
                 form.superficie_construida =
@@ -989,7 +1028,6 @@ watch(
                 form.antiguedad = parseInt(newProperty.features.antiguedad) || null;
             }
 
-            // Datos de estado
             if (newProperty.status) {
                 form.status_id = newProperty.status.status_id || '';
                 form.condition_id = newProperty.status.condition_id || '';
@@ -998,7 +1036,6 @@ watch(
                 form.publicable = !!newProperty.status.publicable;
             }
 
-            // Datos de SEO
             if (newProperty.seo) {
                 form.slug = newProperty.seo.slug || '';
                 form.destacada = !!newProperty.seo.destacada;
@@ -1006,13 +1043,11 @@ watch(
                 form.orden = parseInt(newProperty.seo.orden) || 0;
             }
 
-            // Características adicionales
             form.additional_features = newProperty.additional_features?.map(f => f.id) || [];
 
-            // Imágenes - MEJORADO con ID
             if (newProperty.images && newProperty.images.length > 0) {
                 images.value = newProperty.images.map(img => ({
-                    id: img.id, // IMPORTANTE: Guardar el ID
+                    id: img.id,
                     preview: img.image_url,
                     existing: true,
                 }));

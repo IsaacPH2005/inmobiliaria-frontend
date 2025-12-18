@@ -1,342 +1,521 @@
 <template>
-    <!-- Backdrop con animación -->
-    <transition
-        enter-active-class="transition-opacity duration-300"
-        enter-from-class="opacity-0"
-        enter-to-class="opacity-100"
-        leave-active-class="transition-opacity duration-200"
-        leave-from-class="opacity-100"
-        leave-to-class="opacity-0"
-    >
-        <div
-            class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-60 backdrop-blur-sm"
-            @click.self="handleClose"
-        >
-            <!-- Modal Container con animación -->
-            <transition
-                enter-active-class="transition-all duration-300 ease-out"
-                enter-from-class="scale-95 translate-y-4 opacity-0"
-                enter-to-class="scale-100 translate-y-0 opacity-100"
-                leave-active-class="transition-all duration-200 ease-in"
-                leave-from-class="scale-100 opacity-100"
-                leave-to-class="scale-95 opacity-0"
-            >
-                <div
-                    class="relative w-full max-w-6xl max-h-[95vh] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-                    @click.stop
-                >
-                    <!-- Header Sticky con degradado -->
-                    <div
-                        class="sticky top-0 z-20 border-b shadow-sm bg-gradient-to-r from-white to-gray-50"
-                    >
-                        <div class="flex items-center justify-between p-4 md:p-6">
-                            <div class="flex-1 pr-4">
-                                <h3
-                                    class="text-xl font-bold text-gray-800 md:text-2xl line-clamp-1"
-                                >
-                                    {{ property.descripcion_corta }}
-                                </h3>
-                                <p
-                                    v-if="property.location"
-                                    class="flex items-center mt-1 text-sm text-gray-600"
-                                >
-                                    <MapPin :size="14" class="mr-1" />
-                                    {{ property.location?.ciudad }}, {{ property.location?.zona }}
-                                </p>
-                            </div>
+    <div class="property-detail-container">
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-container">
+            <div class="loading-content">
+                <div class="loader-wrapper">
+                    <Loader2 :size="64" class="animate-spin" :style="{ color: primaryColor }" />
+                    <div class="loader-circle" :style="{ borderColor: primaryColor }"></div>
+                </div>
+                <p class="loading-text">Cargando detalles de la propiedad...</p>
+                <div class="loading-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
 
-                            <!-- Botones de acción del header -->
-                            <div class="flex items-center gap-2">
-                                <!-- Compartir rápido -->
-                                <button
-                                    @click="showShareMenu = !showShareMenu"
-                                    class="relative p-2 text-gray-500 transition-colors rounded-full hover:bg-gray-100"
-                                    title="Compartir"
-                                >
-                                    <Share2 :size="20" />
+        <!-- Error State -->
+        <div v-else-if="error" class="error-container">
+            <div class="error-content">
+                <div class="error-icon-wrapper">
+                    <AlertCircle :size="64" class="error-icon" />
+                </div>
+                <h2 class="error-title">¡Ups! Algo salió mal</h2>
+                <p class="error-message">{{ error }}</p>
+                <div class="error-actions">
+                    <button @click="fetchPropertyDetails" class="retry-button">
+                        <RotateCcw :size="20" />
+                        <span>Intentar nuevamente</span>
+                    </button>
+                    <button @click="goBack" class="back-link">
+                        <ArrowLeft :size="16" />
+                        <span>Volver al inicio</span>
+                    </button>
+                </div>
+            </div>
+        </div>
 
-                                    <!-- Mini menú compartir -->
-                                    <div
-                                        v-if="showShareMenu"
-                                        class="absolute right-0 z-30 p-2 mt-2 bg-white border rounded-lg shadow-xl top-full w-36"
-                                        @click.stop
-                                    >
-                                        <button
-                                            @click="shareWhatsApp"
-                                            class="flex items-center w-full px-3 py-2 text-sm text-left transition-colors rounded hover:bg-green-50"
-                                        >
-                                            <MessageCircle :size="16" class="mr-2 text-green-600" />
-                                            WhatsApp
-                                        </button>
-                                        <button
-                                            @click="copyLink"
-                                            class="flex items-center w-full px-3 py-2 text-sm text-left transition-colors rounded hover:bg-gray-50"
-                                        >
-                                            <LinkIcon :size="16" class="mr-2 text-gray-600" />
-                                            Copiar link
-                                        </button>
-                                    </div>
-                                </button>
+        <!-- Property Content -->
+        <div v-else-if="property.id" class="property-content">
+            <!-- Sticky Header -->
+            <transition name="slide-down">
+                <div v-show="showStickyHeader" class="sticky-header">
+                    <div class="header-content">
+                        <button @click="goBack" class="back-button-header">
+                            <ArrowLeft :size="20" />
+                            <span class="hidden md:inline">Volver</span>
+                        </button>
 
-                                <!-- Favorito -->
-                                <button
-                                    @click="toggleFavorite"
-                                    class="p-2 transition-colors rounded-full hover:bg-gray-100"
-                                    :class="isFavorite ? 'text-red-500' : 'text-gray-500'"
-                                    title="Agregar a favoritos"
-                                >
-                                    <Heart
-                                        :size="20"
-                                        :fill="isFavorite ? 'currentColor' : 'none'"
-                                    />
-                                </button>
-
-                                <!-- Cerrar -->
-                                <button
-                                    @click="handleClose"
-                                    class="p-2 text-gray-500 transition-all rounded-full hover:bg-gray-100 hover:text-gray-700 hover:rotate-90"
-                                >
-                                    <X :size="24" />
-                                </button>
-                            </div>
+                        <div class="header-info">
+                            <h2 class="header-title">{{ property.descripcion_corta }}</h2>
+                            <p class="header-price">{{ formatPrice(property.price?.precio) }}</p>
                         </div>
 
-                        <!-- Progress bar mientras carga -->
-                        <div v-if="loading" class="h-1 overflow-hidden bg-gray-200">
-                            <div class="h-full bg-blue-500 animate-progress"></div>
-                        </div>
-                    </div>
-
-                    <!-- Modal Content Scrollable -->
-                    <div class="flex-1 overflow-y-auto">
-                        <!-- Loading State -->
-                        <div v-if="loading" class="flex flex-col items-center justify-center h-96">
-                            <Loader2
-                                :size="48"
-                                class="mb-4 animate-spin"
-                                :style="{ color: primaryColor }"
-                            />
-                            <p class="text-gray-500">Cargando detalles de la propiedad...</p>
-                        </div>
-
-                        <!-- Error State -->
-                        <div
-                            v-else-if="error"
-                            class="relative px-6 py-4 m-6 border-l-4 border-red-500 rounded-r-lg bg-red-50"
-                        >
-                            <div class="flex items-start">
-                                <AlertCircle
-                                    :size="24"
-                                    class="mr-3 text-red-600 flex-shrink-0 mt-0.5"
-                                />
-                                <div class="flex-1">
-                                    <strong class="block font-bold text-red-800"
-                                        >Error al cargar</strong
-                                    >
-                                    <span class="block mt-1 text-sm text-red-700">{{ error }}</span>
-                                    <button
-                                        @click="$emit('retry')"
-                                        class="flex items-center mt-3 text-sm font-medium text-red-800 hover:text-red-900"
-                                    >
-                                        <RotateCcw :size="16" class="mr-1" />
-                                        Intentar nuevamente
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Property Details -->
-                        <div v-else-if="property.id" class="p-4 md:p-6">
-                            <!-- Property Images Gallery -->
-                            <PropertyImages
-                                :images="property.images"
-                                :title="property.descripcion_corta"
-                                :primary-color="primaryColor"
-                                class="mb-6"
-                            />
-
-                            <!-- Price destacado -->
-                            <div
-                                class="p-6 mb-6 rounded-xl"
-                                :style="{ backgroundColor: primaryColor + '10' }"
+                        <div class="header-actions">
+                            <button
+                                @click="handleShare"
+                                class="icon-button"
+                                title="Compartir"
+                                aria-label="Compartir propiedad"
                             >
-                                <div
-                                    class="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center"
-                                >
-                                    <div>
-                                        <p class="mb-1 text-sm font-medium text-gray-600">Precio</p>
-                                        <h2
-                                            class="text-4xl font-bold"
-                                            :style="{ color: primaryColor }"
-                                        >
-                                            {{ formatPrice(property.price?.precio) }}
-                                        </h2>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <span
-                                            class="px-4 py-2 text-sm font-bold text-white rounded-full"
-                                            :style="{ backgroundColor: primaryColor }"
-                                        >
-                                            {{ property.type?.nombre }}
-                                        </span>
-                                        <span
-                                            class="px-4 py-2 text-sm font-bold text-white bg-green-600 rounded-full"
-                                        >
-                                            {{ property.operation?.nombre }}
-                                        </span>
-                                        <span
-                                            v-if="property.seo?.destacada"
-                                            class="flex items-center px-4 py-2 text-sm font-bold text-white bg-yellow-600 rounded-full"
-                                        >
-                                            <Star :size="16" class="mr-1" />
-                                            Destacada
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tabs de navegación -->
-                            <div class="mb-6 border-b">
-                                <div class="flex gap-1 overflow-x-auto">
-                                    <button
-                                        v-for="tab in tabs"
-                                        :key="tab.id"
-                                        @click="activeTab = tab.id"
-                                        class="flex items-center px-4 py-3 text-sm font-medium transition-colors whitespace-nowrap"
-                                        :class="
-                                            activeTab === tab.id
-                                                ? 'border-b-2 text-blue-600'
-                                                : 'text-gray-600 hover:text-gray-800'
-                                        "
-                                        :style="
-                                            activeTab === tab.id
-                                                ? { borderColor: primaryColor, color: primaryColor }
-                                                : {}
-                                        "
-                                    >
-                                        <component :is="tab.icon" :size="18" class="mr-2" />
-                                        {{ tab.label }}
-                                    </button>
-                                </div>
-                            </div>
-
-                            <!-- Tab Content -->
-                            <div class="mb-6">
-                                <!-- Detalles -->
-                                <div v-show="activeTab === 'details'">
-                                    <PropertyDetails
-                                        :property="property"
-                                        :primary-color="primaryColor"
-                                    />
-                                </div>
-
-                                <!-- Contacto -->
-                                <div v-show="activeTab === 'contact'" class="max-w-2xl mx-auto">
-                                    <ContactForm
-                                        :agent-email="'agente@inmobiliaria.com'"
-                                        :primary-color="primaryColor"
-                                        :property-id="property.id"
-                                        @submit="handleContactSubmit"
-                                    />
-                                </div>
-
-                                <!-- Ubicación -->
-                                <div v-show="activeTab === 'location'">
-                                    <PropertyLocation
-                                        :location="property.location"
-                                        :primary-color="primaryColor"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer Sticky con CTA -->
-                    <div class="sticky bottom-0 z-20 p-4 bg-white border-t shadow-lg md:p-6">
-                        <div
-                            class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
-                        >
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2 text-sm text-gray-600">
-                                    <Eye :size="18" />
-                                    <span>{{ property.views || 0 }} vistas</span>
-                                </div>
-                                <div class="flex items-center gap-2 text-sm text-gray-600">
-                                    <Clock :size="18" />
-                                    <span
-                                        >Publicado hace {{ getTimeAgo(property.created_at) }}</span
-                                    >
-                                </div>
-                            </div>
-                            <div class="flex gap-3">
-                                <button
-                                    @click="handleWhatsAppContact"
-                                    class="flex items-center justify-center flex-1 px-6 py-3 font-bold text-white transition-all bg-green-600 rounded-lg shadow-md md:flex-initial hover:bg-green-700 hover:shadow-lg hover:scale-105"
-                                >
-                                    <Phone :size="20" class="mr-2" />
-                                    Contactar por WhatsApp
-                                </button>
-                                <button
-                                    @click="activeTab = 'contact'"
-                                    class="flex items-center justify-center flex-1 px-6 py-3 font-bold text-white transition-all rounded-lg shadow-md md:flex-initial hover:shadow-lg hover:scale-105"
-                                    :style="{ backgroundColor: primaryColor }"
-                                >
-                                    <Send :size="20" class="mr-2" />
-                                    Enviar Mensaje
-                                </button>
-                            </div>
+                                <Share2 :size="20" />
+                            </button>
+                            <button
+                                @click="handleFavorite"
+                                class="icon-button"
+                                :class="{ 'favorite-active': isFavorite }"
+                                title="Guardar"
+                                aria-label="Guardar en favoritos"
+                            >
+                                <Heart :size="20" :class="{ 'fill-current': isFavorite }" />
+                            </button>
                         </div>
                     </div>
                 </div>
             </transition>
+
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="container-wide">
+                    <!-- Breadcrumb -->
+                    <nav class="breadcrumb" aria-label="Breadcrumb">
+                        <button @click="goBack" class="breadcrumb-link">
+                            <Home :size="16" />
+                            <span>Inicio</span>
+                        </button>
+                        <ChevronRight :size="16" class="breadcrumb-separator" />
+                        <span class="breadcrumb-current">{{ property.type?.nombre }}</span>
+                        <ChevronRight :size="16" class="breadcrumb-separator" />
+                        <span class="breadcrumb-current">{{ property.codigo_interno }}</span>
+                    </nav>
+
+                    <!-- Title and Actions -->
+                    <div class="hero-header">
+                        <div class="hero-left">
+                            <h1 class="hero-title">{{ property.descripcion_corta }}</h1>
+                            <div class="hero-meta">
+                                <span class="meta-item">
+                                    <MapPin :size="16" />
+                                    <span>{{ formatLocation }}</span>
+                                </span>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-item">
+                                    <Eye :size="16" />
+                                    <span>{{ formatViews(property.seo?.visitas) }} visitas</span>
+                                </span>
+                                <span class="meta-separator">•</span>
+                                <span class="meta-item">
+                                    <Clock :size="16" />
+                                    <span>{{ getTimeAgo(property.created_at) }}</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="hero-actions">
+                            <button @click="handleShare" class="action-button secondary">
+                                <Share2 :size="18" />
+                                <span>Compartir</span>
+                            </button>
+                            <button
+                                @click="handleFavorite"
+                                class="action-button secondary"
+                                :class="{ 'favorite-active': isFavorite }"
+                            >
+                                <Heart :size="18" :class="{ 'fill-current': isFavorite }" />
+                                <span>{{ isFavorite ? 'Guardado' : 'Guardar' }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Gallery -->
+            <div class="gallery-section">
+                <div class="container-wide">
+                    <PropertyImages
+                        :images="property.images"
+                        :title="property.descripcion_corta"
+                        :primary-color="primaryColor"
+                    />
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="container-wide">
+                    <div class="content-grid">
+                        <!-- Left Column - Property Details -->
+                        <div class="left-column">
+                            <!-- Price Card -->
+                            <div class="price-card">
+                                <div class="price-header">
+                                    <div class="price-info">
+                                        <p class="price-label">Precio</p>
+                                        <h2 class="price-amount" :style="{ color: primaryColor }">
+                                            {{ formatPrice(property.price?.precio) }}
+                                        </h2>
+                                        <p
+                                            v-if="property.price?.precio_por_m2"
+                                            class="price-per-sqm"
+                                        >
+                                            {{ formatPrice(property.price.precio_por_m2) }}/m²
+                                        </p>
+                                    </div>
+                                    <div class="badges">
+                                        <span
+                                            class="badge badge-primary"
+                                            :style="{ backgroundColor: primaryColor }"
+                                        >
+                                            {{ property.type?.nombre }}
+                                        </span>
+                                        <span class="badge badge-success">
+                                            {{ property.operation?.nombre }}
+                                        </span>
+                                        <span
+                                            v-if="property.seo?.destacada"
+                                            class="badge badge-warning"
+                                        >
+                                            <Star :size="14" class="fill-current" />
+                                            <span>Destacada</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabs -->
+                            <div class="tabs-container">
+                                <div class="tabs" role="tablist">
+                                    <button
+                                        v-for="tab in tabs"
+                                        :key="tab.id"
+                                        @click="activeTab = tab.id"
+                                        class="tab"
+                                        :class="{ active: activeTab === tab.id }"
+                                        :style="
+                                            activeTab === tab.id
+                                                ? {
+                                                      borderBottomColor: primaryColor,
+                                                      color: primaryColor,
+                                                  }
+                                                : {}
+                                        "
+                                        role="tab"
+                                        :aria-selected="activeTab === tab.id"
+                                    >
+                                        <component :is="tab.icon" :size="20" />
+                                        <span>{{ tab.label }}</span>
+                                    </button>
+                                </div>
+
+                                <!-- Tab Content -->
+                                <div class="tab-content" role="tabpanel">
+                                    <transition name="fade" mode="out-in">
+                                        <div v-if="activeTab === 'details'" key="details">
+                                            <PropertyDetails
+                                                :property="property"
+                                                :primary-color="primaryColor"
+                                            />
+                                        </div>
+
+                                        <div v-else-if="activeTab === 'location'" key="location">
+                                            <PropertyLocation
+                                                :location="property.location"
+                                                :primary-color="primaryColor"
+                                            />
+                                        </div>
+
+                                        <div v-else-if="activeTab === 'contact'" key="contact">
+                                            <ContactForm
+                                                :agent-email="
+                                                    property.agent?.email ||
+                                                    'agente@inmobiliaria.com'
+                                                "
+                                                :primary-color="primaryColor"
+                                                :property-id="property.id"
+                                                :property-title="property.descripcion_corta"
+                                                @submit="handleContactSubmit"
+                                            />
+                                        </div>
+                                    </transition>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column - Contact Card -->
+                        <div class="right-column">
+                            <div class="sticky-sidebar">
+                                <!-- Contact Card -->
+                                <div class="contact-card">
+                                    <h3 class="contact-card-title">
+                                        ¿Interesado en esta propiedad?
+                                    </h3>
+
+                                    <div class="quick-info">
+                                        <div class="info-item">
+                                            <span class="info-label">Código</span>
+                                            <span class="info-value"
+                                                >#{{ property.codigo_interno }}</span
+                                            >
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Estado</span>
+                                            <span
+                                                class="info-value status-badge"
+                                                :class="
+                                                    getStatusClass(property.status?.status?.nombre)
+                                                "
+                                            >
+                                                {{
+                                                    property.status?.status?.nombre || 'Disponible'
+                                                }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="contact-buttons">
+                                        <button
+                                            @click="handleWhatsAppContact"
+                                            class="contact-button whatsapp"
+                                        >
+                                            <Phone :size="20" />
+                                            <div class="button-content">
+                                                <span class="button-label">WhatsApp</span>
+                                                <span class="button-sublabel"
+                                                    >Respuesta inmediata</span
+                                                >
+                                            </div>
+                                            <ChevronRight :size="18" class="button-arrow" />
+                                        </button>
+
+                                        <button
+                                            @click="
+                                                activeTab = 'contact';
+                                                scrollToTabs();
+                                            "
+                                            class="contact-button email"
+                                            :style="{ backgroundColor: primaryColor }"
+                                        >
+                                            <Send :size="20" />
+                                            <div class="button-content">
+                                                <span class="button-label">Enviar mensaje</span>
+                                                <span class="button-sublabel"
+                                                    >Te responderemos pronto</span
+                                                >
+                                            </div>
+                                            <ChevronRight :size="18" class="button-arrow" />
+                                        </button>
+
+                                        <button
+                                            @click="handleCallRequest"
+                                            class="contact-button call"
+                                        >
+                                            <PhoneCall :size="20" />
+                                            <div class="button-content">
+                                                <span class="button-label">Solicitar llamada</span>
+                                                <span class="button-sublabel">Te contactamos</span>
+                                            </div>
+                                            <ChevronRight :size="18" class="button-arrow" />
+                                        </button>
+                                    </div>
+
+                                    <!-- Agent Info -->
+                                    <div v-if="property.agent" class="agent-info">
+                                        <div class="agent-avatar">
+                                            <User :size="24" />
+                                        </div>
+                                        <div class="agent-details">
+                                            <p class="agent-name">
+                                                {{ property.agent.name || 'Agente Inmobiliario' }}
+                                            </p>
+                                            <p class="agent-email">{{ property.agent.email }}</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Security badge -->
+                                    <div class="security-badge">
+                                        <Shield :size="16" />
+                                        <span>Información verificada y segura</span>
+                                    </div>
+                                </div>
+
+                                <!-- Features Summary Card -->
+                                <div class="features-summary">
+                                    <h3 class="summary-title">Características principales</h3>
+                                    <div class="summary-grid">
+                                        <div class="summary-item">
+                                            <div
+                                                class="summary-icon"
+                                                :style="{
+                                                    backgroundColor: primaryColor + '20',
+                                                    color: primaryColor,
+                                                }"
+                                            >
+                                                <Bed :size="20" />
+                                            </div>
+                                            <div class="summary-text">
+                                                <span class="summary-value">{{
+                                                    property.features?.habitaciones || 0
+                                                }}</span>
+                                                <span class="summary-label">Habitaciones</span>
+                                            </div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div
+                                                class="summary-icon"
+                                                :style="{
+                                                    backgroundColor: primaryColor + '20',
+                                                    color: primaryColor,
+                                                }"
+                                            >
+                                                <Bath :size="20" />
+                                            </div>
+                                            <div class="summary-text">
+                                                <span class="summary-value">{{
+                                                    property.features?.baños || 0
+                                                }}</span>
+                                                <span class="summary-label">Baños</span>
+                                            </div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div
+                                                class="summary-icon"
+                                                :style="{
+                                                    backgroundColor: primaryColor + '20',
+                                                    color: primaryColor,
+                                                }"
+                                            >
+                                                <Square :size="20" />
+                                            </div>
+                                            <div class="summary-text">
+                                                <span class="summary-value">{{
+                                                    property.features?.superficie_total || 0
+                                                }}</span>
+                                                <span class="summary-label">m²</span>
+                                            </div>
+                                        </div>
+                                        <div class="summary-item">
+                                            <div
+                                                class="summary-icon"
+                                                :style="{
+                                                    backgroundColor: primaryColor + '20',
+                                                    color: primaryColor,
+                                                }"
+                                            >
+                                                <Car :size="20" />
+                                            </div>
+                                            <div class="summary-text">
+                                                <span class="summary-value">{{
+                                                    property.features?.estacionamientos || 0
+                                                }}</span>
+                                                <span class="summary-label">Parking</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Similar Properties Section -->
+            <div class="similar-section">
+                <div class="container-wide">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Propiedades similares</h2>
+                            <p class="section-description">
+                                Otras propiedades que podrían interesarte
+                            </p>
+                        </div>
+                        <button class="view-all-button" :style="{ color: primaryColor }">
+                            Ver todas
+                            <ChevronRight :size="18" />
+                        </button>
+                    </div>
+                    <div class="similar-placeholder">
+                        <Building2 :size="48" class="placeholder-icon" />
+                        <p>Próximamente: Propiedades similares</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Floating Action Buttons (Mobile) -->
+            <div class="floating-actions">
+                <button
+                    @click="handleWhatsAppContact"
+                    class="fab fab-whatsapp"
+                    aria-label="Contactar por WhatsApp"
+                >
+                    <Phone :size="24" />
+                </button>
+                <button
+                    @click="
+                        activeTab = 'contact';
+                        scrollToTabs();
+                    "
+                    class="fab fab-message"
+                    :style="{ backgroundColor: primaryColor }"
+                    aria-label="Enviar mensaje"
+                >
+                    <Send :size="24" />
+                </button>
+            </div>
         </div>
-    </transition>
+    </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { getProperty } from '@/services/PropertiesService';
+import { useSiteSettings } from '@/composables/useSiteSettings';
 import {
-    X,
+    ArrowLeft,
     Loader2,
     AlertCircle,
+    RotateCcw,
     MapPin,
-    Share2,
-    Heart,
     Star,
     Eye,
     Clock,
     Phone,
     Send,
-    RotateCcw,
-    MessageCircle,
-    LinkIcon,
     FileText,
     MapPinned,
     MessageSquare,
+    Share2,
+    Heart,
+    Home,
+    ChevronRight,
+    User,
+    Shield,
+    Bed,
+    Bath,
+    Square,
+    Car,
+    PhoneCall,
+    Building2,
 } from 'lucide-vue-next';
-import PropertyImages from './PropertyImages.vue';
-import PropertyDetails from './PropertyDetails.vue';
-import ContactForm from './ContactForm.vue';
-import PropertyLocation from './PropertyLocation.vue';
+import PropertyImages from '@/components/web/Home/PropertyImages.vue';
+import PropertyDetails from '@/components/web/Home/PropertyDetails.vue';
+import ContactForm from '@/components/web/Home/ContactForm.vue';
+import PropertyLocation from '@/components/web/Home/PropertyLocation.vue';
 
-const props = defineProps({
-    property: {
-        type: Object,
-        required: true,
-    },
-    loading: Boolean,
-    error: String,
-    primaryColor: {
-        type: String,
-        default: '#3B82F6',
-    },
-});
+const route = useRoute();
+const router = useRouter();
+const { siteSettings } = useSiteSettings();
 
-const emit = defineEmits(['close', 'submit-form', 'retry']);
-
+const property = ref({});
+const loading = ref(true);
+const error = ref(null);
 const activeTab = ref('details');
-const showShareMenu = ref(false);
+const showStickyHeader = ref(false);
 const isFavorite = ref(false);
+
+const primaryColor = siteSettings.color_primario || '#3B82F6';
 
 const tabs = [
     { id: 'details', label: 'Detalles', icon: FileText },
@@ -344,50 +523,128 @@ const tabs = [
     { id: 'contact', label: 'Contacto', icon: MessageSquare },
 ];
 
-const handleClose = () => {
-    emit('close');
+// Computed
+const formatLocation = computed(() => {
+    const loc = property.value.location;
+    if (!loc) return 'Ubicación no disponible';
+
+    const parts = [];
+    if (loc.zona) parts.push(loc.zona);
+    if (loc.ciudad) parts.push(loc.ciudad);
+
+    return parts.join(', ');
+});
+
+// Methods
+const fetchPropertyDetails = async () => {
+    try {
+        loading.value = true;
+        error.value = null;
+        const response = await getProperty(route.params.id);
+        property.value = response.data;
+
+        // Cargar favoritos del localStorage
+        const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
+        isFavorite.value = favorites.includes(property.value.id);
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+        error.value =
+            'No pudimos cargar los detalles de la propiedad. Por favor, intenta nuevamente.';
+        console.error('Error fetching property details:', err);
+    } finally {
+        loading.value = false;
+    }
+};
+
+const goBack = () => {
+    router.push('/');
 };
 
 const handleContactSubmit = formData => {
-    emit('submit-form', { ...formData, property_id: props.property.id });
-};
-
-const toggleFavorite = () => {
-    isFavorite.value = !isFavorite.value;
-    // Aquí puedes agregar lógica para guardar en favoritos
-};
-
-const shareWhatsApp = () => {
-    const url = window.location.href;
-    const text = `¡Mira esta propiedad! ${props.property.descripcion_corta}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`, '_blank');
-    showShareMenu.value = false;
-};
-
-const copyLink = async () => {
-    try {
-        await navigator.clipboard.writeText(window.location.href);
-        alert('¡Enlace copiado al portapapeles!');
-    } catch (err) {
-        console.error('Error al copiar:', err);
-    }
-    showShareMenu.value = false;
+    console.log('Form submitted:', formData);
+    alert('¡Gracias por tu interés! Nos pondremos en contacto contigo pronto.');
 };
 
 const handleWhatsAppContact = () => {
-    const message = `Hola, estoy interesado en la propiedad: ${props.property.descripcion_corta}`;
-    const phone = '59176543210'; // Número de contacto
+    const message = `Hola, estoy interesado en la propiedad: ${property.value.descripcion_corta} (Código: ${property.value.codigo_interno})`;
+    const phone = '59176543210';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
 };
 
+const handleCallRequest = () => {
+    activeTab.value = 'contact';
+    scrollToTabs();
+};
+
+const handleShare = async () => {
+    const shareData = {
+        title: property.value.descripcion_corta,
+        text: `Mira esta propiedad: ${property.value.descripcion_corta}`,
+        url: window.location.href,
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                copyToClipboard(window.location.href);
+            }
+        }
+    } else {
+        copyToClipboard(window.location.href);
+    }
+};
+
+const handleFavorite = () => {
+    isFavorite.value = !isFavorite.value;
+
+    const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
+    if (isFavorite.value) {
+        favorites.push(property.value.id);
+    } else {
+        const index = favorites.indexOf(property.value.id);
+        if (index > -1) favorites.splice(index, 1);
+    }
+    localStorage.setItem('favoriteProperties', JSON.stringify(favorites));
+};
+
+const copyToClipboard = text => {
+    navigator.clipboard.writeText(text);
+    alert('Enlace copiado al portapapeles');
+};
+
+const scrollToTabs = () => {
+    setTimeout(() => {
+        const tabsElement = document.querySelector('.tabs-container');
+        if (tabsElement) {
+            const offset = 100;
+            const elementPosition = tabsElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth',
+            });
+        }
+    }, 100);
+};
+
 const formatPrice = price => {
-    if (!price) return '';
+    if (!price) return 'Precio no disponible';
     return new Intl.NumberFormat('es-BO', {
         style: 'currency',
-        currency: 'USD',
+        currency: property.value.price?.currency?.code || 'BOB',
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(price);
+};
+
+const formatViews = views => {
+    if (!views) return '0';
+    if (views >= 1000) return `${(views / 1000).toFixed(1)}k`;
+    return views.toString();
 };
 
 const getTimeAgo = date => {
@@ -399,53 +656,1101 @@ const getTimeAgo = date => {
 
     if (diffDays === 0) return 'hoy';
     if (diffDays === 1) return 'ayer';
-    if (diffDays < 30) return `${diffDays} días`;
-    if (diffDays < 365) return `${Math.floor(diffDays / 30)} meses`;
-    return `${Math.floor(diffDays / 365)} años`;
+    if (diffDays < 30) return `hace ${diffDays} días`;
+    if (diffDays < 365) return `hace ${Math.floor(diffDays / 30)} meses`;
+    return `hace ${Math.floor(diffDays / 365)} años`;
 };
 
-// Cerrar menú de compartir al hacer click fuera
-const handleClickOutside = e => {
-    if (showShareMenu.value && !e.target.closest('.share-menu')) {
-        showShareMenu.value = false;
-    }
+const getStatusClass = status => {
+    const statusMap = {
+        Disponible: 'status-available',
+        Vendida: 'status-sold',
+        Alquilada: 'status-rented',
+        Reservada: 'status-reserved',
+    };
+    return statusMap[status] || 'status-default';
 };
 
-if (typeof window !== 'undefined') {
-    window.addEventListener('click', handleClickOutside);
-}
+const handleScroll = () => {
+    showStickyHeader.value = window.scrollY > 400;
+};
+
+onMounted(() => {
+    fetchPropertyDetails();
+    window.addEventListener('scroll', handleScroll);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll);
+});
 </script>
 
 <style scoped>
-/* Animación de progreso */
-@keyframes progress {
-    0% {
-        transform: translateX(-100%);
+/* Base Styles */
+.property-detail-container {
+    min-height: 100vh;
+    background-color: #f9fafb;
+}
+
+/* Transitions */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.slide-down-enter-active,
+.slide-down-leave-active {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-down-enter-from,
+.slide-down-leave-to {
+    transform: translateY(-100%);
+    opacity: 0;
+}
+
+/* Loading State */
+.loading-container {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 9999;
+}
+
+.loading-content {
+    text-align: center;
+}
+
+.loader-wrapper {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+}
+
+.loader-circle {
+    position: absolute;
+    inset: -10px;
+    border: 3px solid transparent;
+    border-top-color: currentColor;
+    border-radius: 50%;
+    animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+    to {
+        transform: rotate(360deg);
     }
+}
+
+.loading-text {
+    margin-top: 1rem;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.loading-dots {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.loading-dots span {
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: white;
+    border-radius: 50%;
+    animation: bounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dots span:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes bounce {
+    0%,
+    80%,
     100% {
-        transform: translateX(400%);
+        transform: scale(0);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
     }
 }
 
-.animate-progress {
-    animation: progress 1.5s ease-in-out infinite;
+/* Error State */
+.error-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #f9fafb;
 }
 
-/* Scrollbar personalizado */
-.overflow-y-auto::-webkit-scrollbar {
-    width: 8px;
+.error-content {
+    text-align: center;
+    max-width: 500px;
 }
 
-.overflow-y-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
+.error-icon-wrapper {
+    display: inline-flex;
+    padding: 1.5rem;
+    background-color: #fee2e2;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    animation: shake 0.5s;
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-10px);
+    }
+    75% {
+        transform: translateX(10px);
+    }
 }
 
-.overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.error-icon {
+    color: #ef4444;
+}
+
+.error-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+}
+
+.error-message {
+    color: #6b7280;
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.error-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.retry-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2.5rem;
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.retry-button:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
+}
+
+.retry-button:active {
+    transform: translateY(0);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s;
+    font-size: 0.9375rem;
+}
+
+.back-link:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
+/* Property Content */
+.property-content {
+    min-height: 100vh;
+}
+
+/* Sticky Header */
+.sticky-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 40;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0.875rem 1.5rem;
+    gap: 1rem;
+}
+
+.back-button-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background-color: #f3f4f6;
+    border: none;
+    border-radius: 0.625rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #374151;
+}
+
+.back-button-header:hover {
+    background-color: #e5e7eb;
+    transform: translateX(-2px);
+}
+
+.hidden {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .md\:inline {
+        display: inline;
+    }
+}
+
+.header-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.header-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 0.125rem;
+}
+
+.header-price {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.icon-button {
+    padding: 0.625rem;
+    background-color: #f3f4f6;
+    border: none;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button:hover {
+    background-color: #e5e7eb;
+    transform: scale(1.05);
+    color: #111827;
+}
+
+.icon-button.favorite-active {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+.fill-current {
+    fill: currentColor;
+}
+
+/* Hero Section */
+.hero-section {
+    background-color: white;
+    padding: 1.5rem 0 1rem;
+}
+
+.container-wide {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+}
+
+.breadcrumb-link {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #6b7280;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.375rem;
+    transition: all 0.2s;
+}
+
+.breadcrumb-link:hover {
+    color: #111827;
+    background-color: #f3f4f6;
+}
+
+.breadcrumb-separator {
+    color: #d1d5db;
+}
+
+.breadcrumb-current {
+    color: #111827;
+    font-weight: 500;
+}
+
+.hero-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.hero-left {
+    flex: 1;
+    min-width: 0;
+}
+
+.hero-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.75rem;
+    line-height: 1.2;
+}
+
+.hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+.meta-separator {
+    color: #d1d5db;
+}
+
+.hero-actions {
+    display: none;
+    gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+    .hero-actions {
+        display: flex;
+    }
+}
+
+.action-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: 0.625rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9375rem;
+}
+
+.action-button.secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.action-button.secondary:hover {
+    background-color: #e5e7eb;
+    transform: translateY(-1px);
+}
+
+.action-button.favorite-active {
+    color: #ef4444;
+}
+
+/* Gallery Section */
+.gallery-section {
+    background-color: white;
+    padding: 1.5rem 0 2rem;
+}
+
+/* Main Content */
+.main-content {
+    padding: 2rem 0 3rem;
+}
+
+.content-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+}
+
+@media (min-width: 1024px) {
+    .content-grid {
+        grid-template-columns: 1fr 400px;
+    }
+}
+
+/* Left Column */
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Price Card */
+.price-card {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s;
+}
+
+.price-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.price-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+}
+
+.price-info {
+    flex: 1;
+    min-width: 200px;
+}
+
+.price-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+}
+
+.price-per-sqm {
+    color: #6b7280;
+    font-size: 0.9375rem;
+    font-weight: 500;
+}
+
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-start;
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+}
+
+.badge-primary {
+    background-color: #3b82f6;
+}
+
+.badge-success {
+    background-color: #10b981;
+}
+
+.badge-warning {
+    background-color: #f59e0b;
+}
+
+/* Tabs */
+.tabs-container {
+    background-color: white;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.tab {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 1rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #6b7280;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-size: 0.9375rem;
+}
+
+.tab:hover {
+    color: #111827;
+    background-color: #f9fafb;
+}
+
+.tab.active {
+    font-weight: 600;
+}
+
+.tab-content {
+    padding: 2rem;
+    min-height: 200px;
+}
+
+/* Right Column */
+.right-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+    .sticky-sidebar {
+        position: sticky;
+        top: 6rem;
+    }
+}
+
+/* Contact Card */
+.contact-card {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.contact-card-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.25rem;
+}
+
+.quick-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.info-value {
+    color: #111827;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-available {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.status-sold {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-rented {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.status-reserved {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.status-default {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.contact-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.contact-button {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: 0.875rem;
+    font-weight: 600;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.contact-button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.contact-button:hover::before {
+    transform: translateX(100%);
+}
+
+.contact-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.2);
+}
+
+.contact-button.whatsapp {
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+
+.contact-button.email {
+    background-color: #3b82f6;
+}
+
+.contact-button.call {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+}
+
+.button-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+    flex: 1;
+}
+
+.button-label {
+    font-size: 0.9375rem;
+}
+
+.button-sublabel {
+    font-size: 0.75rem;
+    opacity: 0.9;
+    font-weight: 400;
+    margin-top: 0.125rem;
+}
+
+.button-arrow {
+    opacity: 0.7;
+    transition: transform 0.3s;
+}
+
+.contact-button:hover .button-arrow {
+    transform: translateX(4px);
+}
+
+.agent-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    margin-bottom: 1rem;
+}
+
+.agent-avatar {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.agent-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.agent-name {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.agent-email {
+    font-size: 0.875rem;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.security-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.875rem;
+    background-color: #ecfdf5;
+    border-radius: 0.625rem;
+    color: #065f46;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Features Summary */
+.features-summary {
+    background-color: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.summary-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 1.25rem;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s;
+}
+
+.summary-item:hover {
+    background-color: #f3f4f6;
+    transform: translateY(-1px);
+}
+
+.summary-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.summary-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.summary-value {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+}
+
+.summary-label {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+    margin-top: 0.25rem;
+}
+
+/* Similar Section */
+.similar-section {
+    padding: 3rem 0 4rem;
+    background-color: #ffffff;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.section-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.section-description {
+    color: #6b7280;
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+.view-all-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: transparent;
+    border: 2px solid currentColor;
+    border-radius: 0.625rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.view-all-button:hover {
+    background-color: currentColor;
+    color: white !important;
+}
+
+.similar-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background-color: #f9fafb;
+    border-radius: 1rem;
+    border: 2px dashed #e5e7eb;
+}
+
+.placeholder-icon {
+    color: #9ca3af;
+    margin-bottom: 1rem;
+}
+
+/* Floating Action Buttons */
+.floating-actions {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    z-index: 30;
+}
+
+@media (min-width: 1024px) {
+    .floating-actions {
+        display: none;
+    }
+}
+
+.fab {
+    width: 3.75rem;
+    height: 3.75rem;
+    border-radius: 50%;
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
+}
+
+.fab:active {
+    transform: scale(0.95);
+}
+
+.fab-whatsapp {
+    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+}
+
+.fab-message {
+    background-color: #3b82f6;
+}
+
+/* Animations */
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 1.5rem;
+    }
+
+    .price-amount {
+        font-size: 2rem;
+    }
+
+    .tab-content {
+        padding: 1.25rem;
+    }
+
+    .contact-card,
+    .features-summary {
+        padding: 1.25rem;
+    }
+
+    .summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .price-header {
+        flex-direction: column;
+    }
+
+    .badges {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .container-wide {
+        padding: 0 1rem;
+    }
+
+    .hero-title {
+        font-size: 1.25rem;
+    }
+
+    .price-amount {
+        font-size: 1.75rem;
+    }
+
+    .contact-button {
+        padding: 0.875rem 1rem;
+    }
+
+    .tab {
+        padding: 0.875rem 1rem;
+    }
 }
 </style>

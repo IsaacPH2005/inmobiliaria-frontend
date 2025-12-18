@@ -7,7 +7,7 @@ import { Buffer } from 'buffer';
 // Las URLs se configuran en los archivos .env (ver abajo para la configuración de .env)
 //
 // Para entorno de desarrollo local
-/* https: export const urlBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+/* export const urlBase = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
 export const urlBaseAsset = import.meta.env.VITE_ASSET_URL || 'http://127.0.0.1:8000'; */
 export const urlBase =
     import.meta.env.VITE_API_URL || 'https://ends.ilustrardesign.com.br/public/api';

@@ -151,65 +151,6 @@
                         </div>
 
                         <!-- Favicon -->
-                        <div>
-                            <label class="block mb-3 text-sm font-semibold text-neutral-700">
-                                Favicon
-                            </label>
-                            <div
-                                class="relative p-8 text-center transition-colors border-2 border-dashed cursor-pointer rounded-xl border-neutral-300 hover:border-primary-400 hover:bg-neutral-50"
-                                :class="{
-                                    'border-primary-500 bg-primary-50': faviconFile,
-                                    'border-red-500 bg-red-50': faviconError,
-                                }"
-                                @click="$refs.faviconInput.click()"
-                            >
-                                <input
-                                    ref="faviconInput"
-                                    type="file"
-                                    accept="image/png,image/ico"
-                                    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    @change="handleFaviconUpload"
-                                />
-
-                                <div v-if="faviconPreview" class="mb-4">
-                                    <img
-                                        :src="faviconPreview"
-                                        class="w-16 h-16 mx-auto rounded-lg shadow-md"
-                                    />
-                                </div>
-
-                                <div v-else-if="settings.favicon_url" class="mb-4">
-                                    <img
-                                        :src="settings.favicon_url"
-                                        class="w-16 h-16 mx-auto rounded-lg shadow-md"
-                                        @error="faviconError = true"
-                                    />
-                                </div>
-
-                                <div v-else class="flex flex-col items-center justify-center">
-                                    <Image class="w-12 h-12 mb-3 text-neutral-400" />
-                                    <p class="mb-1 text-sm font-medium text-neutral-900">
-                                        {{ faviconFile ? 'Favicon seleccionado' : 'Sube favicon' }}
-                                    </p>
-                                    <p class="text-xs text-neutral-500">PNG, ICO (32x32 o 16x16)</p>
-                                </div>
-
-                                <!-- Botón eliminar -->
-                                <div
-                                    v-if="settings.favicon_url"
-                                    class="flex gap-2 pt-4 mt-4 border-t border-neutral-200"
-                                >
-                                    <button
-                                        type="button"
-                                        @click="confirmDeleteFavicon"
-                                        class="flex-1 px-3 py-1.5 text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors"
-                                    >
-                                        <Trash2 class="w-3 h-3 mr-1" />
-                                        Eliminar
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 

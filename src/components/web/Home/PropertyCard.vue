@@ -1,192 +1,139 @@
 <template>
-    <article
-        class="relative overflow-hidden transition-all duration-300 bg-white border-2 border-gray-200 shadow-lg cursor-pointer group rounded-2xl hover:shadow-2xl hover:border-primary"
-        :style="cssVars"
-        @click="handleClick"
-    >
-        <!-- Badge destacado -->
-        <div
-            v-if="property.seo?.destacada"
-            class="absolute top-4 left-4 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white rounded-full shadow-lg bg-gradient-to-r from-yellow-500 to-yellow-600 animate-pulse-slow"
-        >
-            <Star :size="16" fill="currentColor" />
-            Destacada
-        </div>
-
-        <!-- Badge operación -->
-        <div
-            class="absolute z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-gray-900/90 backdrop-blur-sm rounded-full shadow-lg top-4 right-4"
-        >
-            {{ property.operation?.nombre }}
-        </div>
-
-        <!-- Imagen con overlay hover -->
-        <div class="relative h-56 overflow-hidden bg-gray-200">
+    <div class="property-card" :class="{ 'cursor-pointer': true }" @click="$emit('click')">
+        <!-- Image Section -->
+        <div class="image-container">
             <img
-                :src="getMainImage"
-                :alt="property.descripcion_corta"
-                class="object-cover w-full h-full transition-transform duration-700 ease-out group-hover:scale-110"
+                v-if="property.images && property.images.length > 0"
+                :src="property.images[0].image_url"
+                :alt="property.nombre || property.descripcion_whatsapp || 'Propiedad'"
+                class="property-image"
                 loading="lazy"
-                @error="handleImageError"
             />
-
-            <!-- Gradient overlay -->
-            <div
-                class="absolute inset-0 transition-opacity duration-300 bg-gradient-to-t from-black/60 via-transparent to-transparent group-hover:from-black/70"
-            ></div>
-
-            <!-- Contador de imágenes -->
-            <div
-                class="absolute flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white transition-all duration-300 bg-black/60 backdrop-blur-sm rounded-lg shadow-lg bottom-4 right-4 group-hover:bg-primary group-hover:scale-110"
-            >
-                <span>📷</span>
-                {{ property.images?.length || 0 }}
+            <div v-else class="image-placeholder">
+                <Home :size="48" class="placeholder-icon" />
             </div>
 
-            <!-- Hover overlay con botón "Ver más" -->
-            <div
-                class="absolute inset-0 flex items-center justify-center transition-opacity duration-300 opacity-0 bg-black/40 backdrop-blur-sm group-hover:opacity-100"
-            >
-                <div
-                    class="px-6 py-3 text-sm font-bold text-white transition-all duration-300 transform scale-90 border-2 border-white rounded-full group-hover:scale-100 bg-primary"
+            <!-- Badges -->
+            <div class="badges-container">
+                <span
+                    v-if="property.status?.status?.nombre"
+                    class="badge status-badge"
+                    :class="getStatusClass(property.status.status.nombre)"
                 >
-                    Ver Detalles
-                </div>
+                    {{ property.status.status.nombre }}
+                </span>
+                <span v-if="property.seo?.destacada" class="badge featured-badge">
+                    <Star :size="12" class="fill-current" />
+                    Destacada
+                </span>
             </div>
+
+            <!-- Favorite Button -->
+            <button
+                @click.stop="toggleFavorite"
+                class="favorite-button"
+                :class="{ 'is-favorite': isFavorite }"
+                :aria-label="isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+            >
+                <Heart :size="20" :class="{ 'fill-current': isFavorite }" />
+            </button>
         </div>
 
-        <!-- Contenido de la card -->
-        <div class="p-5">
-            <!-- Encabezado con tipo y código -->
-            <div class="flex items-center justify-between gap-2 mb-3">
-                <span class="px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-100 text-primary">
-                    {{ property.type?.nombre }}
-                </span>
-                <span
-                    class="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-gray-100 rounded-lg"
-                >
-                    #{{ property.codigo_interno }}
-                </span>
-            </div>
+        <!-- Content Section -->
+        <div class="card-content">
+            <!-- Header -->
+            <div class="card-header">
+                <!-- 🔹 NOMBRE DE LA PROPIEDAD (Prioridad) -->
+                <h3 class="property-title">
+                    {{ property.nombre || getDefaultTitle }}
+                </h3>
 
-            <!-- Título -->
-            <h3
-                class="mb-3 text-lg font-bold text-gray-900 transition-colors duration-200 line-clamp-2 group-hover:text-primary"
-            >
-                {{ property.descripcion_corta || 'Propiedad sin título' }}
-            </h3>
-
-            <!-- Precio destacado -->
-            <div class="mb-4">
-                <p class="text-3xl font-bold text-gray-900">
-                    {{ formatPrice(property.price?.precio) }}
-                    <span class="text-base font-semibold text-gray-600">
-                        {{ property.price?.currency?.code || 'USD' }}
-                    </span>
+                <!-- Location -->
+                <p class="property-location">
+                    <MapPin :size="14" />
+                    <span>{{ formatLocation }}</span>
                 </p>
             </div>
 
-            <!-- Ubicación -->
-            <div class="flex items-start gap-2 pb-4 mb-4 border-b border-gray-100">
-                <MapPin :size="18" class="flex-shrink-0 mt-0.5 text-gray-400" />
-                <p class="text-sm font-medium text-gray-700 line-clamp-2">
-                    {{ formatLocation }}
+            <!-- Price -->
+            <div class="price-section">
+                <p class="price-amount" :style="{ color: primaryColor }">
+                    {{ formatPrice }}
+                </p>
+                <p class="price-label">
+                    {{ property.operation?.nombre || 'En venta' }}
                 </p>
             </div>
 
-            <!-- Características principales -->
-            <div class="grid grid-cols-3 gap-3 mb-4">
-                <div
-                    class="flex flex-col items-center p-2 transition-all duration-200 rounded-lg bg-gray-50 group-hover:bg-primary/5"
-                >
-                    <Bed :size="20" class="mb-1 text-gray-600 group-hover:text-primary" />
-                    <span class="text-xs font-bold text-gray-900">{{
-                        property.features?.habitaciones || 0
-                    }}</span>
-                    <span class="text-xs text-gray-500">Hab</span>
-                </div>
-                <div
-                    class="flex flex-col items-center p-2 transition-all duration-200 rounded-lg bg-gray-50 group-hover:bg-primary/5"
-                >
-                    <Bath :size="20" class="mb-1 text-gray-600 group-hover:text-primary" />
-                    <span class="text-xs font-bold text-gray-900">{{
-                        property.features?.baños || 0
-                    }}</span>
-                    <span class="text-xs text-gray-500">Baños</span>
-                </div>
-                <div
-                    class="flex flex-col items-center p-2 transition-all duration-200 rounded-lg bg-gray-50 group-hover:bg-primary/5"
-                >
-                    <Square :size="20" class="mb-1 text-gray-600 group-hover:text-primary" />
-                    <span class="text-xs font-bold text-gray-900">{{
-                        property.features?.superficie_total || 0
-                    }}</span>
-                    <span class="text-xs text-gray-500">m²</span>
-                </div>
-            </div>
-
-            <!-- Característica adicional: Estacionamientos -->
-            <div
-                v-if="property.features?.estacionamientos"
-                class="flex items-center gap-2 pb-4 mb-4 text-sm text-gray-600 border-b border-gray-100"
+            <!-- Description -->
+            <!-- 🔹 DESCRIPCIÓN WHATSAPP (Prioridad sobre Facebook) -->
+            <p
+                v-if="property.descripcion_whatsapp || property.descripcion_facebook"
+                class="property-description"
             >
-                <span class="text-base">🚗</span>
-                <span class="font-medium"
-                    >{{ property.features.estacionamientos }} Estacionamiento(s)</span
-                >
-            </div>
-
-            <!-- Descripción -->
-            <p class="mb-4 text-sm leading-relaxed text-gray-600 line-clamp-2">
-                {{ property.descripcion || 'Excelente propiedad disponible.' }}
+                {{ property.descripcion_whatsapp || property.descripcion_facebook }}
             </p>
 
-            <!-- Footer con estado y acción -->
-            <div class="flex items-center justify-between pt-4 border-t border-gray-100">
-                <!-- Estado -->
-                <div class="flex items-center gap-2">
-                    <div
-                        class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-200"
-                        :class="getStatusClass(property.status?.status?.nombre)"
-                    >
-                        <span class="w-2 h-2 bg-current rounded-full animate-pulse"></span>
-                        {{ property.status?.status?.nombre || 'Disponible' }}
-                    </div>
+            <!-- Features Grid -->
+            <div class="features-grid">
+                <div class="feature-item">
+                    <Bed :size="16" :style="{ color: primaryColor }" />
+                    <span>{{ property.features?.habitaciones || 0 }}</span>
                 </div>
-
-                <!-- Botón Ver detalles -->
-                <button
-                    class="flex items-center gap-1 text-sm font-bold transition-all duration-200 text-primary hover:gap-2"
-                    @click.stop="handleClick"
-                >
-                    Ver detalles
-                    <ChevronRight
-                        :size="18"
-                        class="transition-transform duration-200 group-hover:translate-x-1"
-                    />
-                </button>
+                <div class="feature-item">
+                    <Bath :size="16" :style="{ color: primaryColor }" />
+                    <span>{{ property.features?.baños || 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <Car :size="16" :style="{ color: primaryColor }" />
+                    <span>{{ property.features?.estacionamientos || 0 }}</span>
+                </div>
+                <div class="feature-item">
+                    <Ruler :size="16" :style="{ color: primaryColor }" />
+                    <span>{{ property.features?.superficie_total || 0 }} m²</span>
+                </div>
             </div>
 
-            <!-- Condición del inmueble -->
-            <div v-if="property.status?.condition?.nombre" class="mt-3">
-                <span
-                    class="inline-block px-3 py-1 text-xs font-semibold text-gray-700 bg-gray-100 rounded-lg"
+            <!-- Footer -->
+            <div class="card-footer">
+                <div class="property-type">
+                    <Building2 :size="14" />
+                    <span>{{ property.type?.nombre || 'Propiedad' }}</span>
+                </div>
+                <div class="property-code">#{{ property.codigo_interno }}</div>
+            </div>
+
+            <!-- 🔹 ENLACE GOOGLE DRIVE (Opcional) -->
+            <div v-if="property.enlace" class="drive-link">
+                <a
+                    :href="property.enlace"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    @click.stop
+                    class="drive-button"
                 >
-                    {{ property.status.condition.nombre }}
-                </span>
+                    <FolderOpen :size="14" />
+                    <span>Ver documentos</span>
+                </a>
             </div>
         </div>
-
-        <!-- Border animado al hacer hover -->
-        <div
-            class="absolute inset-0 transition-opacity duration-300 opacity-0 pointer-events-none group-hover:opacity-100 rounded-2xl ring-2 ring-primary ring-offset-2"
-        ></div>
-    </article>
+    </div>
 </template>
 
 <script setup>
-import { computed } from 'vue';
-import { Star, Bed, Bath, Square, MapPin, ChevronRight } from 'lucide-vue-next';
+import { ref, computed, onMounted } from 'vue';
+import {
+    Home,
+    Heart,
+    MapPin,
+    Bed,
+    Bath,
+    Car,
+    Ruler,
+    Building2,
+    Star,
+    FolderOpen,
+} from 'lucide-vue-next';
 
 const props = defineProps({
     property: {
@@ -199,32 +146,11 @@ const props = defineProps({
     },
 });
 
-// Definir el emit correctamente
 const emit = defineEmits(['click']);
 
-// Método para manejar el clic
-const handleClick = () => {
-    console.log('PropertyCard clicked:', props.property.id); // Debug
-    emit('click');
-};
+const isFavorite = ref(false);
 
-// CSS Variables dinámicas
-const cssVars = computed(() => ({
-    '--color-primary': props.primaryColor || '#3B82F6',
-}));
-
-// Obtener imagen principal
-const getMainImage = computed(() => {
-    if (props.property.featured_image) {
-        return props.property.featured_image;
-    }
-    if (props.property.images && props.property.images.length > 0) {
-        return props.property.images[0].image_url;
-    }
-    return 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-});
-
-// Formatear ubicación
+// Computed Properties
 const formatLocation = computed(() => {
     const loc = props.property.location;
     if (!loc) return 'Ubicación no disponible';
@@ -232,92 +158,362 @@ const formatLocation = computed(() => {
     const parts = [];
     if (loc.zona) parts.push(loc.zona);
     if (loc.ciudad) parts.push(loc.ciudad);
-    if (loc.departamento && loc.departamento !== loc.ciudad) parts.push(loc.departamento);
 
-    return parts.length > 0 ? parts.join(', ') : 'Ubicación no especificada';
+    return parts.join(', ') || 'Ubicación no disponible';
 });
 
-// Formatear precio
-const formatPrice = price => {
-    if (!price) return '0';
+const formatPrice = computed(() => {
+    const price = props.property.price?.precio;
+    if (!price) return 'Precio no disponible';
+
+    const currencyCode = props.property.price?.currency?.code || 'BOB';
+
     return new Intl.NumberFormat('es-BO', {
+        style: 'currency',
+        currency: currencyCode,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     }).format(price);
+});
+
+// 🔹 TÍTULO POR DEFECTO SI NO HAY NOMBRE
+const getDefaultTitle = computed(() => {
+    const type = props.property.type?.nombre || 'Propiedad';
+    const zone = props.property.location?.zona || 'Sin zona';
+    return `${type} en ${zone}`;
+});
+
+// Methods
+const toggleFavorite = () => {
+    isFavorite.value = !isFavorite.value;
+
+    const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
+    if (isFavorite.value) {
+        favorites.push(props.property.id);
+    } else {
+        const index = favorites.indexOf(props.property.id);
+        if (index > -1) favorites.splice(index, 1);
+    }
+    localStorage.setItem('favoriteProperties', JSON.stringify(favorites));
 };
 
-// Obtener clase de estado
 const getStatusClass = status => {
-    const statusMap = {
-        Disponible: 'bg-green-100 text-green-700',
-        Vendida: 'bg-red-100 text-red-700',
-        Alquilada: 'bg-blue-100 text-blue-700',
-        Reservada: 'bg-yellow-100 text-yellow-700',
-        'En proceso': 'bg-orange-100 text-orange-700',
-    };
-    return statusMap[status] || 'bg-gray-100 text-gray-700';
+    const statusLower = status?.toLowerCase() || '';
+
+    if (statusLower.includes('disponible')) return 'status-available';
+    if (statusLower.includes('vendida') || statusLower.includes('alquilada')) return 'status-sold';
+    if (statusLower.includes('reservada')) return 'status-reserved';
+
+    return 'status-default';
 };
 
-// Manejar error de imagen
-const handleImageError = event => {
-    event.target.src =
-        'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80';
-};
+onMounted(() => {
+    // Load favorites from localStorage
+    const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
+    isFavorite.value = favorites.includes(props.property.id);
+});
 </script>
 
 <style scoped>
-.bg-primary {
-    background-color: var(--color-primary);
+.property-card {
+    background-color: white;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
 }
 
-.text-primary {
-    color: var(--color-primary);
+.property-card:hover {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
 }
 
-.border-primary {
-    border-color: var(--color-primary);
+/* Image Section */
+.image-container {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background-color: #f3f4f6;
 }
 
-.bg-primary\/10 {
-    background-color: var(--color-primary);
-    opacity: 0.1;
+.property-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
 }
 
-.bg-primary\/5 {
-    background-color: var(--color-primary);
-    opacity: 0.05;
+.property-card:hover .property-image {
+    transform: scale(1.05);
 }
 
-.ring-primary {
-    --tw-ring-color: var(--color-primary);
+.image-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-.group-hover\:text-primary:hover {
-    color: var(--color-primary);
+.placeholder-icon {
+    color: rgba(255, 255, 255, 0.5);
 }
 
-.group-hover\:bg-primary:hover {
-    background-color: var(--color-primary);
+/* Badges */
+.badges-container {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 10;
 }
 
-.line-clamp-2 {
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    backdrop-filter: blur(8px);
+}
+
+.status-badge {
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-available {
+    background-color: rgba(16, 185, 129, 0.9);
+}
+
+.status-sold {
+    background-color: rgba(239, 68, 68, 0.9);
+}
+
+.status-reserved {
+    background-color: rgba(245, 158, 11, 0.9);
+}
+
+.status-default {
+    background-color: rgba(107, 114, 128, 0.9);
+}
+
+.featured-badge {
+    background-color: rgba(245, 158, 11, 0.9);
+}
+
+.fill-current {
+    fill: currentColor;
+}
+
+/* Favorite Button */
+.favorite-button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #6b7280;
+    transition: all 0.3s;
+    z-index: 10;
+}
+
+.favorite-button:hover {
+    background-color: white;
+    transform: scale(1.1);
+    color: #ef4444;
+}
+
+.favorite-button.is-favorite {
+    color: #ef4444;
+    background-color: #fee2e2;
+}
+
+/* Card Content */
+.card-content {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.property-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.3;
+    margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
 
-@keyframes pulse-slow {
-    0%,
-    100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.8;
-    }
+.property-location {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
 }
 
-.animate-pulse-slow {
-    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.property-location span {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Price Section */
+.price-section {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.price-amount {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin: 0;
+}
+
+.price-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Description */
+.property-description {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0;
+}
+
+/* Features Grid */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.feature-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.375rem;
+    text-align: center;
+}
+
+.feature-item span {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+}
+
+/* Card Footer */
+.card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.property-type {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.property-code {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #9ca3af;
+    letter-spacing: 0.05em;
+}
+
+/* 🔹 DRIVE LINK STYLES */
+.drive-link {
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.drive-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.875rem;
+    background-color: #f3f4f6;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.drive-button:hover {
+    background-color: #e5e7eb;
+    color: #111827;
+    transform: translateX(2px);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .property-title {
+        font-size: 1rem;
+    }
+
+    .price-amount {
+        font-size: 1.25rem;
+    }
+
+    .card-content {
+        padding: 1rem;
+    }
 }
 </style>

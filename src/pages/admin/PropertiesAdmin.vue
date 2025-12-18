@@ -42,7 +42,7 @@
                             v-model="filters.buscar"
                             @input="debouncedFetch"
                             type="text"
-                            placeholder="Código, dirección, zona..."
+                            placeholder="Código, nombre, dirección, zona..."
                             class="w-full py-2 pl-10 pr-4 border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
                             :style="{
                                 '--tw-ring-color': siteSettings?.color_primario || '#2563eb',
@@ -197,7 +197,7 @@
                     <img
                         v-if="property.images && property.images.length > 0"
                         :src="property.images[0].image_url"
-                        :alt="`Propiedad ${property.codigo_interno}`"
+                        :alt="property.nombre || `Propiedad ${property.codigo_interno}`"
                         class="object-cover w-full h-full transition-opacity duration-300"
                         @error="handleImageError"
                     />
@@ -281,17 +281,17 @@
 
                 <!-- Contenido -->
                 <div class="p-5">
-                    <!-- Header con badge de estado activo -->
+                    <!-- Header con nombre de la propiedad y badge de estado -->
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1 min-w-0">
+                            <!-- 🔹 TÍTULO CON NOMBRE DE LA PROPIEDAD -->
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="text-lg font-bold truncate text-neutral-900">
-                                    {{ property.type?.nombre || 'Sin tipo' }} en
-                                    {{ property.location?.zona || 'Sin zona' }}
+                                    {{ property.nombre || property.type?.nombre || 'Sin nombre' }}
                                 </h3>
                                 <!-- Badge de estado -->
                                 <span
-                                    class="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                    class="px-2 py-0.5 text-xs font-semibold rounded-full whitespace-nowrap"
                                     :class="
                                         property.seo?.activa
                                             ? 'bg-green-100 text-green-800'
@@ -301,7 +301,12 @@
                                     {{ property.seo?.activa ? 'Activa' : 'Inactiva' }}
                                 </span>
                             </div>
-                            <p class="mt-1 text-sm text-neutral-500">
+                            <!-- 🔹 SUBTÍTULO CON TIPO Y UBICACIÓN -->
+                            <p class="text-sm text-neutral-500">
+                                {{ property.type?.nombre || 'Sin tipo' }} •
+                                {{ property.location?.zona || 'Sin zona' }}
+                            </p>
+                            <p class="mt-1 text-xs text-neutral-400">
                                 {{ property.location?.ciudad || 'Sin ciudad' }},
                                 {{ property.location?.departamento || 'Sin departamento' }}
                             </p>
@@ -320,9 +325,12 @@
                         </div>
                     </div>
 
+                    <!-- 🔹 DESCRIPCIÓN (Prioriza descripcion_whatsapp) -->
                     <p class="mb-4 text-sm text-neutral-600 line-clamp-2">
                         {{
-                            property.descripcion_corta || property.descripcion || 'Sin descripción'
+                            property.descripcion_whatsapp ||
+                            property.descripcion_facebook ||
+                            'Sin descripción'
                         }}
                     </p>
 
@@ -572,14 +580,14 @@ const filters = reactive({
     tipo_inmueble: '',
     tipo_operacion: '',
     estado: '',
-    activa: '', // Nuevo filtro
+    activa: '',
     por_pagina: 12,
     pagina: 1,
 });
 
 const showModal = ref(false);
 const editingProperty = ref(null);
-const togglingId = ref(null); // Para controlar el loading del toggle
+const togglingId = ref(null);
 
 // Computed para páginas visibles en la paginación
 const visiblePages = computed(() => {
@@ -719,9 +727,13 @@ const closeModal = () => {
 };
 
 const confirmDelete = property => {
-    const direccion = property.location?.direccion || property.codigo_interno || 'esta propiedad';
+    const nombre =
+        property.nombre ||
+        property.location?.direccion ||
+        property.codigo_interno ||
+        'esta propiedad';
 
-    if (confirm(`¿Estás seguro de eliminar "${direccion}"? Esta acción no se puede deshacer.`)) {
+    if (confirm(`¿Estás seguro de eliminar "${nombre}"? Esta acción no se puede deshacer.`)) {
         deleteProperty(property.id)
             .then(() => {
                 toast.success('Propiedad eliminada correctamente');

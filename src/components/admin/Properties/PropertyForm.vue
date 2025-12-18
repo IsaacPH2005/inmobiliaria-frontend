@@ -1,6 +1,31 @@
 <template>
     <form @submit.prevent="saveProperty" class="p-6 space-y-6">
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <!-- 🔹 PRIMEROS INPUTS: Código Interno y Nombre -->
+            <div>
+                <label class="block mb-1 text-sm font-medium text-neutral-700">
+                    Código Interno <span class="text-red-500">*</span>
+                </label>
+                <input
+                    v-model="form.codigo_interno"
+                    required
+                    placeholder="Ej: PROP-2025-001"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+            </div>
+
+            <div>
+                <label class="block mb-1 text-sm font-medium text-neutral-700">
+                    Nombre de la Propiedad <span class="text-red-500">*</span>
+                </label>
+                <input
+                    v-model="form.nombre"
+                    required
+                    placeholder="Ej: Casa Moderna en Zona Sur"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+            </div>
+
             <!-- Información básica -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
@@ -51,13 +76,15 @@
                 </select>
             </div>
 
+            <!-- 🔹 NUEVO: Enlace Google Drive -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Código Interno <span class="text-red-500">*</span>
+                    📁 Enlace Google Drive
                 </label>
                 <input
-                    v-model="form.codigo_interno"
-                    required
+                    v-model="form.enlace"
+                    type="url"
+                    placeholder="https://drive.google.com/..."
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -163,7 +190,7 @@
                 />
             </div>
 
-            <!-- NUEVO: Google Maps URL con vista previa -->
+            <!-- Google Maps URL con vista previa -->
             <div class="md:col-span-2">
                 <label class="block mb-2 text-sm font-medium text-neutral-700">
                     🗺️ Enlace de Google Maps
@@ -362,25 +389,27 @@
                 </select>
             </div>
 
-            <!-- Descripciones -->
+            <!-- 🔹 DESCRIPCIONES RENOMBRADAS -->
             <div class="md:col-span-2">
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Descripción Corta
+                    📱 Descripción WhatsApp
                 </label>
                 <textarea
-                    v-model="form.descripcion_corta"
+                    v-model="form.descripcion_whatsapp"
                     rows="2"
+                    placeholder="Descripción corta para compartir por WhatsApp"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 ></textarea>
             </div>
 
             <div class="md:col-span-2">
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Descripción Completa
+                    📘 Descripción Facebook
                 </label>
                 <textarea
-                    v-model="form.descripcion"
+                    v-model="form.descripcion_facebook"
                     rows="4"
+                    placeholder="Descripción completa para publicar en Facebook"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 ></textarea>
             </div>
@@ -661,8 +690,10 @@ const form = reactive({
     operation_type_id: '',
     user_id: '',
     codigo_interno: '',
-    descripcion: '',
-    descripcion_corta: '',
+    nombre: '', // 🔹 NUEVO
+    enlace: '', // 🔹 NUEVO: Google Drive
+    descripcion_facebook: '', // 🔹 RENOMBRADO
+    descripcion_whatsapp: '', // 🔹 RENOMBRADO
     notas_internas: '',
     precio: 0,
     currency_id: '',
@@ -672,7 +703,7 @@ const form = reactive({
     zona: '',
     direccion: '',
     direccion_completa: '',
-    google_maps_url: '', // NUEVO: Reemplaza latitud y longitud
+    google_maps_url: '',
     superficie_total: 0,
     superficie_construida: null,
     habitaciones: 0,
@@ -697,7 +728,7 @@ const form = reactive({
 const images = ref([]);
 const imagesToDelete = ref([]);
 
-// NUEVO: Validar URL de Google Maps
+// Validar URL de Google Maps
 const isValidGoogleMapsUrl = computed(() => {
     if (!form.google_maps_url) return false;
     return (
@@ -707,11 +738,10 @@ const isValidGoogleMapsUrl = computed(() => {
     );
 });
 
-// NUEVO: Convertir URL a formato embebible
+// Convertir URL a formato embebible
 const getMapEmbedUrl = computed(() => {
     if (!form.google_maps_url) return '';
 
-    // Extraer coordenadas de la URL
     const coordMatch = form.google_maps_url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
     if (coordMatch) {
         const lat = coordMatch[1];
@@ -719,7 +749,6 @@ const getMapEmbedUrl = computed(() => {
         return `https://www.google.com/maps?q=${lat},${lng}&output=embed`;
     }
 
-    // Usar búsqueda por dirección
     const address = encodeURIComponent(
         form.direccion_completa || `${form.direccion}, ${form.zona}, ${form.ciudad}`
     );
@@ -882,6 +911,7 @@ const saveProperty = async () => {
         'operation_type_id',
         'user_id',
         'codigo_interno',
+        'nombre', // 🔹 AHORA ES REQUERIDO
         'precio',
         'currency_id',
         'departamento',
@@ -951,8 +981,10 @@ const saveProperty = async () => {
         let response;
         if (props.property) {
             response = await updateProperty(props.property.id, formDataObj);
+            console.log(response);
         } else {
             response = await createProperty(formDataObj);
+            console.log(response);
         }
 
         emit('saved');
@@ -995,8 +1027,10 @@ watch(
             form.operation_type_id = newProperty.operation_type_id || '';
             form.user_id = newProperty.user_id || '';
             form.codigo_interno = newProperty.codigo_interno || '';
-            form.descripcion = newProperty.descripcion || '';
-            form.descripcion_corta = newProperty.descripcion_corta || '';
+            form.nombre = newProperty.nombre || ''; // 🔹 NUEVO
+            form.enlace = newProperty.enlace || ''; // 🔹 NUEVO
+            form.descripcion_facebook = newProperty.descripcion_facebook || ''; // 🔹 RENOMBRADO
+            form.descripcion_whatsapp = newProperty.descripcion_whatsapp || ''; // 🔹 RENOMBRADO
             form.notas_internas = newProperty.notas_internas || '';
 
             if (newProperty.price) {
@@ -1005,7 +1039,6 @@ watch(
                 form.precio_alquiler = parseFloat(newProperty.price.precio_alquiler) || null;
             }
 
-            // NUEVO: Datos de ubicación con google_maps_url
             if (newProperty.location) {
                 form.departamento = newProperty.location.departamento || '';
                 form.ciudad = newProperty.location.ciudad || '';

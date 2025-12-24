@@ -233,23 +233,6 @@
                             ]"
                         />
                         <span class="flex-1 text-left">{{ item.name }}</span>
-                        <span
-                            v-if="item.badge"
-                            :class="[
-                                'ml-auto px-2 py-0.5 text-xs font-bold rounded-full transition-colors',
-                                isActive ? 'bg-white/20 text-white' : 'text-white',
-                            ]"
-                            :style="
-                                !isActive
-                                    ? {
-                                          backgroundColor:
-                                              siteSettings?.color_primario || '#2563eb',
-                                      }
-                                    : {}
-                            "
-                        >
-                            {{ item.badge }}
-                        </span>
                     </button>
                 </router-link>
 
@@ -600,7 +583,7 @@ const menuItems = ref([
         badge: '24',
     },
     { name: 'Usuarios', to: '/users', icon: Users },
-    { name: 'Reportes', to: '/reports', icon: BarChart3 },
+    /* { name: 'Reportes', to: '/reports', icon: BarChart3 }, */
 ]);
 
 const toggleNotifications = () => {

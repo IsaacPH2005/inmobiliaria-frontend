@@ -11,9 +11,6 @@
                 class="flex items-center gap-2 px-5 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:shadow-lg"
                 :style="{
                     backgroundColor: siteSettings?.color_primario || '#2563eb',
-                    '&:hover': {
-                        backgroundColor: darkenColor(siteSettings?.color_primario || '#2563eb', 10),
-                    },
                 }"
                 @mouseenter="
                     e =>
@@ -34,6 +31,7 @@
 
         <!-- Estadísticas -->
         <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
+            <!-- Total -->
             <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
                 <div class="flex items-center justify-between">
                     <div>
@@ -56,6 +54,7 @@
                 </div>
             </div>
 
+            <!-- Activos -->
             <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
                 <div class="flex items-center justify-between">
                     <div>
@@ -70,20 +69,22 @@
                 </div>
             </div>
 
+            <!-- Inactivos -->
             <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm font-medium text-neutral-500">Administradores</p>
-                        <p class="mt-2 text-3xl font-bold text-purple-600">
-                            {{ statistics.admins }}
+                        <p class="text-sm font-medium text-neutral-500">Inactivos</p>
+                        <p class="mt-2 text-3xl font-bold text-red-600">
+                            {{ statistics.inactive }}
                         </p>
                     </div>
-                    <div class="p-3 bg-purple-100 rounded-lg">
-                        <Shield class="w-8 h-8 text-purple-600" />
+                    <div class="p-3 bg-red-100 rounded-lg">
+                        <Lock class="w-8 h-8 text-red-600" />
                     </div>
                 </div>
             </div>
 
+            <!-- Agentes -->
             <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
                 <div class="flex items-center justify-between">
                     <div>
@@ -260,12 +261,12 @@
                                 <div class="flex items-center gap-3">
                                     <div class="relative flex-shrink-0">
                                         <div
-                                            v-if="user.avatar"
+                                            v-if="user.avatar && getAvatarUrl(user.avatar)"
                                             class="w-10 h-10 overflow-hidden rounded-full"
                                         >
                                             <img
                                                 :src="getAvatarUrl(user.avatar)"
-                                                :alt="user.name"
+                                                :alt="user.general_data?.nombre || 'Avatar'"
                                                 class="object-cover w-full h-full"
                                                 @error="handleImageError"
                                             />
@@ -282,16 +283,16 @@
                                                 )})`,
                                             }"
                                         >
-                                            {{ getInitials(user.name) }}
+                                            {{ getInitials(user.general_data?.nombre) }}
                                         </div>
                                         <div
                                             class="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full"
-                                            :class="user.is_active ? 'bg-green-500' : 'bg-gray-400'"
+                                            :class="user.estado ? 'bg-green-500' : 'bg-gray-400'"
                                         ></div>
                                     </div>
                                     <div class="min-w-0">
                                         <p class="text-sm font-semibold text-neutral-900">
-                                            {{ user.name }}
+                                            {{ user.general_data?.nombre }}
                                         </p>
                                         <p class="text-xs truncate text-neutral-500">
                                             ID: {{ user.id }}
@@ -303,19 +304,30 @@
                             <!-- Contacto -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-neutral-900">{{ user.email }}</div>
-                                <div v-if="user.phone" class="text-xs text-neutral-500">
-                                    {{ user.phone }}
+                                <div
+                                    v-if="user.general_data?.celular"
+                                    class="text-xs text-neutral-500"
+                                >
+                                    {{ user.general_data.celular }}
                                 </div>
                             </td>
 
                             <!-- Rol -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span
+                                    v-if="user.roles && user.roles.length > 0"
                                     class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full"
-                                    :class="getRoleClass(user.role)"
+                                    :class="getRoleBadgeClass(user.roles[0].name)"
                                 >
                                     <Shield class="w-3 h-3" />
-                                    {{ getRoleLabel(user.role) }}
+                                    {{ formatRoleName(user.roles[0].name) }}
+                                </span>
+                                <span
+                                    v-else
+                                    class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800"
+                                >
+                                    <Shield class="w-3 h-3" />
+                                    Usuario
                                 </span>
                             </td>
 
@@ -324,16 +336,16 @@
                                 <span
                                     class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full"
                                     :class="
-                                        user.is_active
+                                        user.estado
                                             ? 'bg-green-100 text-green-800'
                                             : 'bg-gray-100 text-gray-800'
                                     "
                                 >
                                     <div
                                         class="w-1.5 h-1.5 rounded-full"
-                                        :class="user.is_active ? 'bg-green-500' : 'bg-gray-500'"
+                                        :class="user.estado ? 'bg-green-500' : 'bg-gray-500'"
                                     ></div>
-                                    {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                                    {{ user.estado ? 'Activo' : 'Inactivo' }}
                                 </span>
                             </td>
 
@@ -350,11 +362,6 @@
                                         class="p-2 transition-all rounded-lg hover:bg-opacity-10"
                                         :style="{
                                             color: siteSettings?.color_primario || '#2563eb',
-                                            '&:hover': {
-                                                backgroundColor: `${
-                                                    siteSettings?.color_primario || '#2563eb'
-                                                }10`,
-                                            },
                                         }"
                                         @mouseenter="
                                             e =>
@@ -372,10 +379,10 @@
                                     <button
                                         @click="toggleUserStatus(user)"
                                         class="p-2 transition-all rounded-lg text-neutral-600 hover:bg-neutral-100"
-                                        :title="user.is_active ? 'Desactivar' : 'Activar'"
+                                        :title="user.estado ? 'Desactivar' : 'Activar'"
                                     >
                                         <component
-                                            :is="user.is_active ? Lock : Unlock"
+                                            :is="user.estado ? Lock : Unlock"
                                             class="w-4 h-4"
                                         />
                                     </button>
@@ -403,10 +410,13 @@
                     <div class="flex items-start gap-4 mb-3">
                         <!-- Avatar -->
                         <div class="relative flex-shrink-0">
-                            <div v-if="user.avatar" class="w-12 h-12 overflow-hidden rounded-full">
+                            <div
+                                v-if="user.avatar && getAvatarUrl(user.avatar)"
+                                class="w-12 h-12 overflow-hidden rounded-full"
+                            >
                                 <img
                                     :src="getAvatarUrl(user.avatar)"
-                                    :alt="user.name"
+                                    :alt="user.general_data?.nombre"
                                     class="object-cover w-full h-full"
                                     @error="handleImageError"
                                 />
@@ -423,22 +433,22 @@
                                     )})`,
                                 }"
                             >
-                                {{ getInitials(user.name) }}
+                                {{ getInitials(user.general_data?.nombre) }}
                             </div>
                             <div
                                 class="absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full"
-                                :class="user.is_active ? 'bg-green-500' : 'bg-gray-400'"
+                                :class="user.estado ? 'bg-green-500' : 'bg-gray-400'"
                             ></div>
                         </div>
 
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
                             <h3 class="text-base font-semibold text-neutral-900">
-                                {{ user.name }}
+                                {{ user.general_data?.nombre }}
                             </h3>
                             <p class="text-sm truncate text-neutral-500">{{ user.email }}</p>
-                            <p v-if="user.phone" class="text-xs text-neutral-400">
-                                {{ user.phone }}
+                            <p v-if="user.general_data?.celular" class="text-xs text-neutral-400">
+                                {{ user.general_data.celular }}
                             </p>
                         </div>
                     </div>
@@ -446,25 +456,33 @@
                     <!-- Badges -->
                     <div class="flex flex-wrap gap-2 mb-3">
                         <span
+                            v-if="user.roles && user.roles.length > 0"
                             class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full"
-                            :class="getRoleClass(user.role)"
+                            :class="getRoleBadgeClass(user.roles[0].name)"
                         >
                             <Shield class="w-3 h-3" />
-                            {{ getRoleLabel(user.role) }}
+                            {{ formatRoleName(user.roles[0].name) }}
+                        </span>
+                        <span
+                            v-else
+                            class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-800 bg-gray-100 rounded-full"
+                        >
+                            <Shield class="w-3 h-3" />
+                            Usuario
                         </span>
                         <span
                             class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full"
                             :class="
-                                user.is_active
+                                user.estado
                                     ? 'bg-green-100 text-green-800'
                                     : 'bg-gray-100 text-gray-800'
                             "
                         >
                             <div
                                 class="w-1.5 h-1.5 rounded-full"
-                                :class="user.is_active ? 'bg-green-500' : 'bg-gray-500'"
+                                :class="user.estado ? 'bg-green-500' : 'bg-gray-500'"
                             ></div>
-                            {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                            {{ user.estado ? 'Activo' : 'Inactivo' }}
                         </span>
                     </div>
 
@@ -498,9 +516,9 @@
                         <button
                             @click="toggleUserStatus(user)"
                             class="px-3 py-2 text-sm font-medium transition-all border rounded-lg text-neutral-700 border-neutral-300 hover:bg-neutral-100"
-                            :title="user.is_active ? 'Desactivar' : 'Activar'"
+                            :title="user.estado ? 'Desactivar' : 'Activar'"
                         >
-                            <component :is="user.is_active ? Lock : Unlock" class="w-4 h-4" />
+                            <component :is="user.estado ? Lock : Unlock" class="w-4 h-4" />
                         </button>
                         <button
                             @click="confirmDelete(user)"
@@ -654,13 +672,11 @@ import {
     deleteUser,
     toggleUserStatus as toggleStatus,
     getUserStatistics,
-    showUser, // ⭐ IMPORTAR showUser
+    showUser,
 } from '@/services/UserService';
 import { useSiteSettings } from '@/composables/useSiteSettings';
 
 const toast = useToast();
-
-// Usar el composable que comparte el estado global
 const { siteSettings } = useSiteSettings();
 
 const loading = ref(true);
@@ -692,7 +708,7 @@ const filters = reactive({
 const showModal = ref(false);
 const editingUser = ref(null);
 
-// Computed para páginas visibles
+// Páginas visibles
 const visiblePages = computed(() => {
     const pages = [];
     const currentPage = pagination.value.current_page;
@@ -719,6 +735,7 @@ onMounted(async () => {
     await Promise.all([fetchUsers(), fetchStatistics()]);
 });
 
+// Usuarios
 const fetchUsers = async () => {
     loading.value = true;
     try {
@@ -730,7 +747,6 @@ const fetchUsers = async () => {
         params.append('per_page', filters.per_page);
 
         const response = await getUsers(`?${params.toString()}`);
-
         if (response.data.data) {
             users.value = response.data.data;
             pagination.value = {
@@ -751,10 +767,26 @@ const fetchUsers = async () => {
     }
 };
 
+// Estadísticas (usa tu response: { success, data: {...} })
 const fetchStatistics = async () => {
     try {
         const response = await getUserStatistics();
-        statistics.value = response.data;
+        const payload = response.data?.data || response.data || {};
+
+        statistics.value.total = payload.total || 0;
+        statistics.value.active = payload.active || 0;
+        statistics.value.inactive = payload.inactive || 0;
+
+        // admins si viniera en total_by_role
+        const adminsRole = Array.isArray(payload.total_by_role)
+            ? payload.total_by_role.find(r => r.name === 'admin')
+            : null;
+        statistics.value.admins = adminsRole?.total || 0;
+
+        const agentsRole = Array.isArray(payload.total_by_role)
+            ? payload.total_by_role.find(r => r.name === 'agente')
+            : null;
+        statistics.value.agents = agentsRole?.total || 0;
     } catch (error) {
         console.error('Error al cargar estadísticas:', error);
     }
@@ -779,26 +811,15 @@ const openCreateModal = () => {
     showModal.value = true;
 };
 
-// ⭐ FUNCIÓN ACTUALIZADA PARA USAR showUser
 const openEditModal = async user => {
     try {
-        // Mostrar loading mientras se carga
         const loadingToast = toast.info('Cargando datos del usuario...', {
             timeout: false,
         });
 
-        // Llamar al servicio showUser
         const { data } = await showUser(user.id);
-
-        console.log('Usuario cargado para edición:', data);
-
-        // Asignar los datos completos del usuario
         editingUser.value = data.data || data;
-
-        // Cerrar toast de loading
         toast.dismiss(loadingToast);
-
-        // Abrir modal
         showModal.value = true;
     } catch (error) {
         console.error('Error al cargar usuario:', error);
@@ -810,7 +831,6 @@ const onUserSaved = () => {
     closeModal();
     fetchUsers();
     fetchStatistics();
-    toast.success(editingUser.value ? 'Usuario actualizado' : 'Usuario creado');
 };
 
 const closeModal = () => {
@@ -819,9 +839,9 @@ const closeModal = () => {
 };
 
 const toggleUserStatus = async user => {
-    const action = user.is_active ? 'desactivar' : 'activar';
+    const action = user.estado ? 'desactivar' : 'activar';
 
-    if (confirm(`¿Estás seguro de ${action} a ${user.name}?`)) {
+    if (confirm(`¿Estás seguro de ${action} a ${user.general_data?.nombre}?`)) {
         try {
             await toggleStatus(user.id);
             toast.success(`Usuario ${action === 'activar' ? 'activado' : 'desactivado'}`);
@@ -835,7 +855,11 @@ const toggleUserStatus = async user => {
 };
 
 const confirmDelete = user => {
-    if (confirm(`¿Estás seguro de eliminar a "${user.name}"? Esta acción no se puede deshacer.`)) {
+    if (
+        confirm(
+            `¿Estás seguro de eliminar a "${user.general_data?.nombre}"? Esta acción no se puede deshacer.`
+        )
+    ) {
         deleteUser(user.id)
             .then(() => {
                 toast.success('Usuario eliminado correctamente');
@@ -857,59 +881,119 @@ const clearFilters = () => {
     fetchUsers();
 };
 
-// Utilidades
+// Utils
 const getInitials = name => {
-    if (!name) return '?';
+    if (!name || typeof name !== 'string') return '?';
     return name
         .split(' ')
+        .filter(n => n.trim())
         .map(n => n[0])
         .join('')
         .toUpperCase()
         .substring(0, 2);
 };
 
-const getRoleLabel = role => {
-    const roles = {
-        admin: 'Administrador',
-        agent: 'Agente',
-        user: 'Usuario',
-    };
-    return roles[role] || role;
-};
-
-const getRoleClass = role => {
-    const classes = {
-        admin: 'bg-purple-100 text-purple-800',
-        agent: 'bg-blue-100 text-blue-800',
-        user: 'bg-gray-100 text-gray-800',
-    };
-    return classes[role] || 'bg-gray-100 text-gray-800';
-};
-
 const formatDate = date => {
     if (!date) return '';
-    return new Date(date).toLocaleDateString('es-BO', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-    });
+    try {
+        return new Date(date).toLocaleDateString('es-BO', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+        });
+    } catch (error) {
+        console.error('Error al formatear fecha:', error);
+        return '';
+    }
 };
 
+// Avatar URL
 const getAvatarUrl = avatar => {
     if (!avatar) return '';
-    if (avatar.startsWith('http')) return avatar;
-    return `${import.meta.env.VITE_API_URL}/storage/${avatar}`;
+
+    if (typeof avatar === 'object' && avatar !== null) {
+        if (avatar.image_url) {
+            return getAvatarUrl(avatar.image_url);
+        }
+        return '';
+    }
+
+    if (typeof avatar !== 'string') return '';
+
+    if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+        return avatar;
+    }
+
+    const baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+
+    if (avatar.startsWith('/storage/')) {
+        return `${baseUrl}${avatar}`;
+    }
+
+    if (avatar.startsWith('storage/')) {
+        return `${baseUrl}/${avatar}`;
+    }
+
+    return `${baseUrl}/storage/${avatar}`;
 };
 
 const handleImageError = event => {
+    if (!event.target) return;
+
     event.target.style.display = 'none';
+
+    const parent = event.target.parentElement;
+    if (parent && !parent.querySelector('.fallback-avatar')) {
+        const userName = event.target.alt || '?';
+        const initials = getInitials(userName);
+
+        const fallbackDiv = document.createElement('div');
+        fallbackDiv.className =
+            'fallback-avatar flex items-center justify-center w-full h-full text-sm font-bold text-white rounded-full';
+        fallbackDiv.style.background = `linear-gradient(135deg, ${
+            siteSettings.value?.color_primario || '#2563eb'
+        }, ${darkenColor(siteSettings.value?.color_primario || '#2563eb', 20)})`;
+        fallbackDiv.textContent = initials;
+
+        parent.appendChild(fallbackDiv);
+    }
 };
 
-// Función para oscurecer colores
+const formatRoleName = role => {
+    if (!role) return 'Usuario';
+
+    const formatted = role.charAt(0).toUpperCase() + role.slice(1);
+
+    const roleTranslations = {
+        Admin: 'Administrador',
+        Agent: 'Agente',
+        User: 'Usuario',
+    };
+
+    return roleTranslations[formatted] || formatted;
+};
+
+const getRoleBadgeClass = role => {
+    if (!role) return 'bg-gray-100 text-gray-800';
+
+    const roleLower = role.toLowerCase();
+
+    if (roleLower === 'admin') {
+        return 'bg-purple-100 text-purple-800';
+    } else if (roleLower === 'agent') {
+        return 'bg-orange-100 text-orange-800';
+    } else {
+        return 'bg-gray-100 text-gray-800';
+    }
+};
+
 const darkenColor = (color, percent) => {
-    if (!color) return '#1e40af';
+    if (!color || typeof color !== 'string') return '#1e40af';
 
     const hex = color.replace('#', '');
+
+    if (!/^[0-9A-F]{6}$/i.test(hex)) return '#1e40af';
+
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
@@ -937,7 +1021,6 @@ function debounce(func, wait) {
 </script>
 
 <style scoped>
-/* Scrollbar personalizado para la tabla */
 .overflow-x-auto::-webkit-scrollbar {
     height: 8px;
 }
@@ -956,7 +1039,6 @@ function debounce(func, wait) {
     background: #555;
 }
 
-/* Focus ring personalizado con color primario */
 input:focus,
 select:focus {
     ring-color: v-bind('siteSettings?.color_primario || "#2563eb"');

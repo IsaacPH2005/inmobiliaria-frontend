@@ -1,33 +1,37 @@
 <template>
-    <section class="py-6 bg-white border-b shadow-sm sticky top-[72px] z-40" :style="cssVars">
-        <div class="container px-4 mx-auto">
-            <!-- Filtros principales en una línea -->
-            <div class="flex flex-wrap items-center gap-3 mb-3">
-                <!-- Tipo de operación -->
-                <div class="flex gap-2">
+    <section class="sticky top-[72px] z-40 bg-white border-b shadow-md">
+        <div class="container px-4 py-4 mx-auto">
+            <!-- Filtros principales - Línea única -->
+            <div
+                class="flex items-center gap-3 pb-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent"
+            >
+                <!-- Tipo de Operación -->
+                <div class="flex flex-shrink-0 gap-2">
                     <button
                         v-for="operation in operationTypes"
                         :key="operation.value"
                         @click="localFilters.operation_type = operation.value"
-                        class="flex items-center px-4 py-2.5 text-sm font-semibold transition-all rounded-xl shadow-sm hover:shadow-md"
-                        :class="
+                        :class="[
+                            'px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center gap-2',
                             localFilters.operation_type === operation.value
-                                ? 'bg-primary text-white scale-105 shadow-primary/30'
-                                : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-200'
-                        "
+                                ? 'bg-primary text-white shadow-md'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm',
+                        ]"
                     >
-                        <component :is="operation.icon" :size="18" class="mr-2" />
+                        <component :is="operation.icon" :size="16" />
                         {{ operation.label }}
                     </button>
                 </div>
 
-                <div class="hidden w-px h-10 bg-gray-200 md:block"></div>
+                <!-- Separador vertical -->
+                <div class="flex-shrink-0 w-px h-8 bg-gray-300"></div>
 
-                <!-- Tipo de propiedad -->
-                <div class="relative">
+                <!-- Tipo de Propiedad -->
+                <div class="relative flex-shrink-0 min-w-[180px]">
                     <select
                         v-model="localFilters.property_type"
-                        class="pl-4 pr-10 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm hover:shadow-md transition-all appearance-none cursor-pointer"
+                        @change="applyFilters"
+                        class="w-full py-2 pl-3 pr-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     >
                         <option value="">🏠 Tipo de propiedad</option>
                         <option value="1">🏡 Casa</option>
@@ -39,15 +43,16 @@
                     </select>
                     <ChevronDown
                         :size="16"
-                        class="absolute text-gray-400 transform -translate-y-1/2 pointer-events-none right-3 top-1/2"
+                        class="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-1/2"
                     />
                 </div>
 
                 <!-- Ubicación -->
-                <div class="relative">
+                <div class="relative flex-shrink-0 min-w-[180px]">
                     <select
                         v-model="localFilters.location"
-                        class="pl-4 pr-10 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary shadow-sm hover:shadow-md transition-all appearance-none cursor-pointer"
+                        @change="applyFilters"
+                        class="w-full py-2 pl-3 pr-10 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
                     >
                         <option value="">📍 Ciudad</option>
                         <option value="Cochabamba">Cochabamba</option>
@@ -57,106 +62,97 @@
                     </select>
                     <ChevronDown
                         :size="16"
-                        class="absolute text-gray-400 transform -translate-y-1/2 pointer-events-none right-3 top-1/2"
+                        class="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-3 top-1/2"
                     />
                 </div>
 
-                <!-- Precio -->
+                <!-- Rango de Precio -->
                 <div
-                    class="flex items-center gap-2 p-2 transition-all bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md"
+                    class="flex items-center flex-shrink-0 gap-2 px-3 py-2 bg-white border border-gray-300 rounded-lg"
                 >
-                    <DollarSign :size="16" class="ml-1 text-gray-400" />
+                    <span class="text-gray-400">💲</span>
                     <input
                         v-model.number="localFilters.min_price"
+                        @input.debounce="applyFilters"
                         type="number"
-                        placeholder="Min"
-                        class="w-24 px-2 py-1 text-sm font-medium text-gray-700 bg-transparent focus:outline-none"
+                        placeholder="Mín"
+                        class="w-20 text-sm font-medium text-gray-700 bg-transparent focus:outline-none"
                     />
-                    <span class="text-gray-300">|</span>
+                    <span class="text-gray-300">-</span>
                     <input
                         v-model.number="localFilters.max_price"
+                        @input.debounce="applyFilters"
                         type="number"
-                        placeholder="Max"
-                        class="w-24 px-2 py-1 text-sm font-medium text-gray-700 bg-transparent focus:outline-none"
+                        placeholder="Máx"
+                        class="w-20 text-sm font-medium text-gray-700 bg-transparent focus:outline-none"
                     />
                 </div>
 
-                <!-- Botón más filtros -->
+                <!-- Más Filtros -->
                 <button
                     @click="showAdvanced = !showAdvanced"
-                    class="flex items-center px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all bg-white border border-gray-200 rounded-xl hover:bg-gray-50 shadow-sm hover:shadow-md"
+                    :class="[
+                        'px-4 py-2 text-sm font-medium rounded-lg transition-all whitespace-nowrap flex items-center gap-2 flex-shrink-0',
+                        activeFiltersCount > 0
+                            ? 'bg-primary text-white shadow-md'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm',
+                    ]"
                 >
-                    <SlidersHorizontal :size="18" class="mr-2" />
+                    <SlidersHorizontal :size="16" />
                     Más filtros
+                    <span
+                        v-if="activeFiltersCount > 0"
+                        class="ml-1 px-1.5 py-0.5 text-xs bg-white/30 rounded-full"
+                    >
+                        {{ activeFiltersCount }}
+                    </span>
                     <ChevronDown
-                        :size="16"
-                        class="ml-2 transition-transform duration-200"
+                        :size="14"
+                        class="transition-transform"
                         :class="{ 'rotate-180': showAdvanced }"
                     />
                 </button>
 
-                <div class="flex-1"></div>
-
-                <!-- Botones de acción -->
-                <button
-                    v-if="activeFiltersCount > 0"
-                    @click="resetFilters"
-                    class="flex items-center px-4 py-2.5 text-sm font-semibold text-gray-600 transition-all hover:text-red-600 hover:bg-red-50 rounded-xl"
-                >
-                    <X :size="18" class="mr-1.5" />
-                    Limpiar
-                </button>
+                <!-- Botón Buscar -->
                 <button
                     @click="applyFilters"
-                    class="flex items-center px-6 py-2.5 text-sm font-bold text-white transition-all rounded-xl shadow-md bg-primary hover:shadow-lg hover:scale-105 hover:shadow-primary/30"
+                    class="flex items-center flex-shrink-0 gap-2 px-6 py-2 ml-auto text-sm font-bold text-white transition-all rounded-lg shadow-lg bg-primary hover:bg-primary/90 hover:shadow-xl whitespace-nowrap"
                 >
-                    <Search :size="18" class="mr-2" />
-                    Buscar
-                    <span
-                        v-if="activeFiltersCount > 0"
-                        class="ml-2 px-2 py-0.5 text-xs bg-white/20 rounded-full"
-                    >
-                        {{ activeFiltersCount }}
-                    </span>
+                    <Search :size="16" />
+                    Buscar {{ propertiesCount }}
                 </button>
             </div>
 
-            <!-- Filtros avanzados colapsables -->
-            <transition
-                enter-active-class="transition duration-300 ease-out"
-                enter-from-class="scale-95 -translate-y-4 opacity-0"
-                enter-to-class="scale-100 translate-y-0 opacity-100"
-                leave-active-class="transition duration-200 ease-in"
-                leave-from-class="scale-100 translate-y-0 opacity-100"
-                leave-to-class="scale-95 -translate-y-4 opacity-0"
+            <!-- Filtros Avanzados (Colapsables) -->
+            <Transition
+                enter-active-class="transition-all duration-200 ease-out"
+                enter-from-class="-translate-y-2 opacity-0 max-h-0"
+                enter-to-class="max-h-screen translate-y-0 opacity-100"
+                leave-active-class="transition-all duration-150 ease-in"
+                leave-from-class="max-h-screen translate-y-0 opacity-100"
+                leave-to-class="-translate-y-2 opacity-0 max-h-0"
             >
-                <div
-                    v-if="showAdvanced"
-                    class="p-5 mt-4 border border-gray-200 shadow-inner bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl"
-                >
-                    <div class="grid grid-cols-2 gap-4 mb-5 md:grid-cols-4 lg:grid-cols-6">
+                <div v-if="showAdvanced" class="pt-4 mt-4 overflow-hidden border-t border-gray-200">
+                    <div class="grid grid-cols-2 gap-4 mb-6 md:grid-cols-3 lg:grid-cols-6">
                         <!-- Habitaciones -->
                         <div>
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
-                                <Home :size="14" class="text-primary" />
+                                <Home :size="12" />
                                 Habitaciones
                             </label>
-                            <div class="flex gap-1.5">
+                            <div class="flex gap-1">
                                 <button
                                     v-for="num in [1, 2, 3, 4, 5]"
                                     :key="`bed-${num}`"
-                                    @click="
-                                        localFilters.bedrooms =
-                                            localFilters.bedrooms === num ? null : num
-                                    "
-                                    class="flex items-center justify-center flex-1 px-2 py-2 text-sm font-bold transition-all rounded-lg hover:scale-110"
-                                    :class="
+                                    @click="toggleFilter('bedrooms', num)"
+                                    :class="[
+                                        'flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all shadow-sm border',
                                         localFilters.bedrooms === num
-                                            ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm'
-                                    "
+                                            ? 'bg-primary text-white border-primary shadow-md'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md',
+                                    ]"
                                 >
                                     {{ num }}{{ num === 5 ? '+' : '' }}
                                 </button>
@@ -166,53 +162,45 @@
                         <!-- Baños -->
                         <div>
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
-                                <span>🚿</span>
-                                Baños
+                                🚿 Baños
                             </label>
-                            <div class="flex gap-1.5">
+                            <div class="flex gap-1">
                                 <button
                                     v-for="num in [1, 2, 3, 4]"
                                     :key="`bath-${num}`"
-                                    @click="
-                                        localFilters.bathrooms =
-                                            localFilters.bathrooms === num ? null : num
-                                    "
-                                    class="flex items-center justify-center flex-1 px-2 py-2 text-sm font-bold transition-all rounded-lg hover:scale-110"
-                                    :class="
+                                    @click="toggleFilter('bathrooms', num)"
+                                    :class="[
+                                        'flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all shadow-sm border',
                                         localFilters.bathrooms === num
-                                            ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm'
-                                    "
+                                            ? 'bg-primary text-white border-primary shadow-md'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md',
+                                    ]"
                                 >
                                     {{ num }}{{ num === 4 ? '+' : '' }}
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Estacionamientos -->
+                        <!-- Parking -->
                         <div>
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
-                                <span>🚗</span>
-                                Parking
+                                🚗 Parking
                             </label>
-                            <div class="flex gap-1.5">
+                            <div class="flex gap-1">
                                 <button
                                     v-for="num in [1, 2, 3, 4]"
                                     :key="`parking-${num}`"
-                                    @click="
-                                        localFilters.parking =
-                                            localFilters.parking === num ? null : num
-                                    "
-                                    class="flex items-center justify-center flex-1 px-2 py-2 text-sm font-bold transition-all rounded-lg hover:scale-110"
-                                    :class="
+                                    @click="toggleFilter('parking', num)"
+                                    :class="[
+                                        'flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all shadow-sm border',
                                         localFilters.parking === num
-                                            ? 'bg-primary text-white shadow-md shadow-primary/30'
-                                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200 shadow-sm'
-                                    "
+                                            ? 'bg-primary text-white border-primary shadow-md'
+                                            : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md',
+                                    ]"
                                 >
                                     {{ num }}{{ num === 4 ? '+' : '' }}
                                 </button>
@@ -220,41 +208,42 @@
                         </div>
 
                         <!-- Zona/Calle -->
-                        <div>
+                        <div class="lg:col-span-2">
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
-                                📌 Zona o Calle
+                                📌 Zona / Calle
                             </label>
                             <input
                                 v-model="localFilters.street"
+                                @input.debounce="applyFilters"
                                 type="text"
-                                placeholder="Ej: Zona Sur"
-                                class="w-full px-3 py-2 text-sm font-medium text-gray-700 transition-all bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary hover:shadow-md"
+                                placeholder="Ej: Norte, Centro, Av. Principal..."
+                                class="w-full px-3 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary shadow-sm transition-all"
                             />
                         </div>
 
                         <!-- Estado -->
                         <div>
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
                                 ⭐ Estado
                             </label>
                             <div class="relative">
                                 <select
                                     v-model="localFilters.status"
-                                    class="w-full px-3 py-2 pr-8 text-sm font-medium text-gray-700 transition-all bg-white border border-gray-200 rounded-lg shadow-sm appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary hover:shadow-md"
+                                    @change="applyFilters"
+                                    class="w-full px-3 py-2.5 pr-8 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary shadow-sm transition-all"
                                 >
                                     <option value="">Todos</option>
-                                    <option value="new">A estrenar</option>
-                                    <option value="good">Buen estado</option>
-                                    <option value="remodel">A remodelar</option>
-                                    <option value="construction">En construcción</option>
+                                    <option value="1">Disponible</option>
+                                    <option value="2">Reservado</option>
+                                    <option value="3">Vendido/Alquilado</option>
                                 </select>
                                 <ChevronDown
                                     :size="14"
-                                    class="absolute text-gray-400 transform -translate-y-1/2 pointer-events-none right-2 top-1/2"
+                                    class="absolute text-gray-400 -translate-y-1/2 pointer-events-none right-2 top-1/2"
                                 />
                             </div>
                         </div>
@@ -262,69 +251,82 @@
                         <!-- Superficie -->
                         <div>
                             <label
-                                class="flex items-center gap-2 mb-2.5 text-xs font-bold text-gray-700 uppercase tracking-wide"
+                                class="flex items-center gap-1.5 mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider"
                             >
-                                📏 Superficie (m²)
+                                📏 Superficie m²
                             </label>
                             <input
                                 v-model.number="localFilters.min_area"
+                                @input.debounce="applyFilters"
                                 type="number"
-                                placeholder="Min m²"
-                                class="w-full px-3 py-2 text-sm font-medium text-gray-700 transition-all bg-white border border-gray-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary hover:shadow-md"
+                                placeholder="Mín m²"
+                                class="w-full px-3 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary shadow-sm transition-all"
                             />
                         </div>
                     </div>
 
                     <!-- Características -->
-                    <div>
+                    <div class="mb-6">
                         <label
-                            class="flex items-center gap-2 mb-3 text-xs font-bold tracking-wide text-gray-700 uppercase"
+                            class="flex items-center gap-2 mb-4 text-sm font-semibold text-gray-700"
                         >
                             ✨ Características
                         </label>
-                        <div class="flex flex-wrap gap-2.5">
+                        <div class="flex flex-wrap gap-2">
                             <label
                                 v-for="feature in features"
                                 :key="feature.value"
-                                class="group flex items-center px-4 py-2.5 text-sm font-semibold transition-all bg-white border-2 rounded-xl cursor-pointer hover:scale-105 shadow-sm hover:shadow-md"
-                                :class="{
-                                    'border-primary bg-primary/5 text-primary shadow-primary/20':
-                                        localFilters.features.includes(feature.value),
-                                    'border-gray-200 text-gray-700 hover:border-gray-300':
-                                        !localFilters.features.includes(feature.value),
-                                }"
+                                :class="[
+                                    'inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all shadow-sm border hover:shadow-md hover:scale-[1.02]',
+                                    localFilters.features.includes(feature.value)
+                                        ? 'bg-primary text-white border-primary shadow-md'
+                                        : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50 hover:border-gray-300',
+                                ]"
                             >
                                 <input
                                     type="checkbox"
                                     :value="feature.value"
                                     v-model="localFilters.features"
-                                    class="mr-2.5 w-4 h-4 rounded accent-primary cursor-pointer"
+                                    @change="applyFilters"
+                                    class="sr-only"
                                 />
-                                <span>{{ feature.icon }}</span>
-                                <span class="ml-1.5">{{ feature.label }}</span>
+                                <span class="mr-2 text-lg">{{ feature.icon }}</span>
+                                {{ feature.label }}
                             </label>
                         </div>
                     </div>
+
+                    <!-- Botón Limpiar Filtros -->
+                    <div v-if="activeFiltersCount > 0" class="flex justify-center lg:justify-end">
+                        <button
+                            @click="resetFilters"
+                            class="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-red-600 transition-all rounded-xl bg-red-50 hover:bg-red-100 hover:shadow-md border border-red-200 hover:border-red-300 shadow-sm"
+                        >
+                            <X :size="16" />
+                            Limpiar todos los filtros ({{ activeFiltersCount }})
+                        </button>
+                    </div>
                 </div>
-            </transition>
+            </Transition>
         </div>
     </section>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Tag, Home, DollarSign, SlidersHorizontal, ChevronDown, Search, X } from 'lucide-vue-next';
 import { useSiteSettings } from '@/composables/useSiteSettings';
 
 const emit = defineEmits(['search', 'reset']);
+const props = defineProps({
+    propertiesCount: {
+        type: Number,
+        default: 0,
+    },
+});
+
 const { siteSettings } = useSiteSettings();
-
 const showAdvanced = ref(false);
-
-// CSS Variables dinámicas basadas en el color primario
-const cssVars = computed(() => ({
-    '--color-primary': siteSettings.value.color_primario || '#3B82F6',
-}));
 
 const operationTypes = [
     { value: '1', label: 'Venta', icon: Tag },
@@ -335,7 +337,7 @@ const operationTypes = [
 const features = [
     { value: 'pool', label: 'Piscina', icon: '🏊' },
     { value: 'garden', label: 'Jardín', icon: '🌳' },
-    { value: 'security', label: 'Seguridad', icon: '🔒' },
+    { value: 'security', label: 'Seguridad 24h', icon: '🔒' },
     { value: 'wifi', label: 'Internet', icon: '📶' },
     { value: 'balcony', label: 'Balcón', icon: '🏞️' },
     { value: 'ac', label: 'A/C', icon: '❄️' },
@@ -374,8 +376,22 @@ const activeFiltersCount = computed(() => {
     return count;
 });
 
+const toggleFilter = (key, value) => {
+    localFilters.value[key] = localFilters.value[key] === value ? null : value;
+    // Auto-apply después de 500ms
+    setTimeout(() => applyFilters(), 300);
+};
+
 const applyFilters = () => {
-    emit('search', { ...localFilters.value });
+    // Transformar features para el backend
+    const filtersToEmit = {
+        ...localFilters.value,
+        operation_type_id: localFilters.value.operation_type,
+        property_type_id: localFilters.value.property_type,
+    };
+
+    emit('search', filtersToEmit);
+    showAdvanced.value = false;
 };
 
 const resetFilters = () => {
@@ -395,41 +411,49 @@ const resetFilters = () => {
     };
     emit('reset');
 };
+
+// Auto-apply en cambios críticos
+watch(
+    () => localFilters.value.operation_type,
+    () => {
+        applyFilters();
+    },
+    { immediate: true }
+);
 </script>
 
 <style scoped>
 .bg-primary {
-    background-color: var(--color-primary);
+    background-color: v-bind('siteSettings.color_primario || "#3B82F6"');
 }
 
 .text-primary {
-    color: var(--color-primary);
+    color: v-bind('siteSettings.color_primario || "#3B82F6"');
 }
 
-.border-primary {
-    border-color: var(--color-primary);
-}
-
-.shadow-primary\/30 {
-    box-shadow: 0 4px 6px -1px var(--color-primary), 0 2px 4px -1px var(--color-primary);
-    opacity: 0.3;
-}
-
-.shadow-primary\/20 {
-    box-shadow: 0 2px 4px -1px var(--color-primary);
-    opacity: 0.2;
-}
-
-.focus\:ring-primary\/50:focus {
-    --tw-ring-color: var(--color-primary);
-    --tw-ring-opacity: 0.5;
+.focus\:ring-primary\/30:focus {
+    --tw-ring-color: color-mix(
+        in srgb,
+        v-bind('siteSettings.color_primario || "#3B82F6"') 30%,
+        transparent
+    );
 }
 
 .focus\:border-primary:focus {
-    border-color: var(--color-primary);
+    border-color: v-bind('siteSettings.color_primario || "#3B82F6"');
 }
 
-.accent-primary {
-    accent-color: var(--color-primary);
+/* Scrollbar personalizado */
+.scrollbar-thin::-webkit-scrollbar {
+    height: 6px;
+}
+
+.scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 3px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+    background-color: transparent;
 }
 </style>

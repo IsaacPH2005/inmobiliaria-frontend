@@ -135,27 +135,45 @@
                 />
             </div>
 
-            <!-- Ubicación -->
-            <div class="md:col-span-2">
+            <!-- 🔹 MODIFICADO: Departamento y Ciudad con selects de Bolivia -->
+            <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
                     Departamento <span class="text-red-500">*</span>
                 </label>
-                <input
+                <select
                     v-model="form.departamento"
                     required
+                    @change="updateCities"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                >
+                    <option value="">Seleccionar departamento</option>
+                    <option v-for="depto in departamentos" :key="depto" :value="depto">
+                        {{ depto }}
+                    </option>
+                </select>
             </div>
 
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
                     Ciudad <span class="text-red-500">*</span>
                 </label>
-                <input
+                <select
                     v-model="form.ciudad"
                     required
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                />
+                    :disabled="!form.departamento"
+                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:bg-gray-100"
+                >
+                    <option value="">
+                        {{
+                            form.departamento
+                                ? 'Seleccionar ciudad'
+                                : 'Seleccione primero un departamento'
+                        }}
+                    </option>
+                    <option v-for="city in citiesByDepartment" :key="city" :value="city">
+                        {{ city }}
+                    </option>
+                </select>
             </div>
 
             <div>
@@ -684,6 +702,135 @@ const currenciesList = ref([]);
 const typesPropertyList = ref([]);
 const agentsList = ref([]);
 
+// 🔹 DATOS DE BOLIVIA: Departamentos y ciudades
+const departamentos = ref([
+    'Chuquisaca',
+    'La Paz',
+    'Cochabamba',
+    'Oruro',
+    'Potosí',
+    'Tarija',
+    'Santa Cruz',
+    'Beni',
+    'Pando',
+]);
+
+const ciudadesPorDepartamento = ref({
+    Chuquisaca: [
+        'Sucre',
+        'Yotala',
+        'Tarabuco',
+        'Padilla',
+        'Monteagudo',
+        'Zudáñez',
+        'Cuchumuela',
+        'Tomina',
+        'Villa Serrano',
+        'Huacareta',
+    ],
+    'La Paz': [
+        'La Paz',
+        'El Alto',
+        'Viacha',
+        'Caranavi',
+        'Coroico',
+        'Achacachi',
+        'Copacabana',
+        'Sorata',
+        'Laja',
+        'Pucarani',
+    ],
+    Cochabamba: [
+        'Cochabamba',
+        'Sacaba',
+        'Quillacollo',
+        'Vinto',
+        'Tiquipaya',
+        'Colcapirhua',
+        'Sipe Sipe',
+        'Cliza',
+        'Tolata',
+        'Punata',
+    ],
+    Oruro: [
+        'Oruro',
+        'Huanuni',
+        'Machacamarca',
+        'Poopó',
+        'Challapata',
+        'Huayllamarca',
+        'Sebástian Pagador',
+        'Chuquihuata',
+        'Eucaliptus',
+        'Salinas de Garci Mendoza',
+    ],
+    Potosí: [
+        'Potosí',
+        'Llallagua',
+        'Uyuni',
+        'Tupiza',
+        'Villazón',
+        'Betanzos',
+        'Puna',
+        'Ckochas',
+        'Toro Toro',
+        'Cotagaita',
+    ],
+    Tarija: [
+        'Tarija',
+        'Yacuiba',
+        'Bermejo',
+        'Villa Montes',
+        'Padcaya',
+        'Caraparí',
+        'Entre Ríos',
+        'San Lorenzo',
+        'Yunchará',
+        'El Puente',
+    ],
+    'Santa Cruz': [
+        'Santa Cruz de la Sierra',
+        'Warnes',
+        'Montero',
+        'Portachuelo',
+        'Okinyawa',
+        'Cotoca',
+        'La Guardia',
+        'El Torno',
+        'Roboré',
+        'San José de Chiquitos',
+    ],
+    Beni: [
+        'Trinidad',
+        'Riberalta',
+        'Guayaramerín',
+        'Rurrenabaque',
+        'San Borja',
+        'Santa Ana del Yacuma',
+        'Magdalena',
+        'Reyes',
+        'San Ignacio de Moxos',
+        'Loreto',
+    ],
+    Pando: [
+        'Cobija',
+        'Porvenir',
+        'Filadelfia',
+        'Bella Vista',
+        'Puerto Rico',
+        'San Pedro',
+        'Nueva Esperanza',
+        'El Carmen',
+        'Bolpebra',
+        'Santuario',
+    ],
+});
+
+const citiesByDepartment = computed(() => {
+    if (!form.departamento) return [];
+    return ciudadesPorDepartamento.value[form.departamento] || [];
+});
+
 // Formulario reactivo
 const form = reactive({
     property_type_id: '',
@@ -754,6 +901,12 @@ const getMapEmbedUrl = computed(() => {
     );
     return `https://www.google.com/maps?q=${address}&output=embed`;
 });
+
+// Función para actualizar las ciudades cuando se selecciona un departamento
+const updateCities = () => {
+    // Limpiar la ciudad seleccionada cuando cambia el departamento
+    form.ciudad = '';
+};
 
 // Función para resetear el formulario
 const resetForm = () => {

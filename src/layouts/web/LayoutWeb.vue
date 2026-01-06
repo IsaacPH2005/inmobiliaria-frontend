@@ -1,9 +1,13 @@
+<!-- LayoutWeb.vue -->
 <template>
-    <div class="app-layout">
+    <div class="flex flex-col min-h-screen bg-gray-50">
         <Header :site-settings="siteSettings" />
 
-        <main class="main-content">
-            <router-view />
+        <div class="h-[72px] lg:h-[92px]"></div>
+
+        <main class="flex-grow w-full">
+            <!-- 🔹 SIN TRANSITION - Solución más simple -->
+            <router-view :key="$route.path" />
         </main>
 
         <Footer :site-settings="siteSettings" />
@@ -15,18 +19,5 @@ import Header from '@/components/web/Layout/Header.vue';
 import Footer from '@/components/web/Layout/Footer.vue';
 import { useSiteSettings } from '@/composables/useSiteSettings';
 
-// Usar el composable que comparte el estado global
 const { siteSettings } = useSiteSettings();
 </script>
-
-<style scoped>
-.app-layout {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.main-content {
-    flex: 1;
-}
-</style>

@@ -1,19 +1,28 @@
 <template>
-    <HeroSection />
+    <div class="home-page">
+        <HeroSection />
 
-    <!-- Filtros avanzados pegajosos -->
-    <AdvancedSearchFilters @search="applyFilters" @reset="resetFilters" />
+        <div id="propiedades">
+            <AdvancedSearchFilters
+                @search="applyFilters"
+                @reset="resetFilters"
+                @show-all="showAllProperties"
+                :properties-count="pagination.total"
+            />
 
-    <PropertyGrid
-        :properties="properties"
-        :loading="loading"
-        :error="error"
-        :pagination="pagination"
-        :primary-color="siteSettings.color_primario || '#3B82F6'"
-        @reset-filters="resetFilters"
-        @change-page="changePage"
-        @view-property="viewProperty"
-    />
+            <PropertyGrid
+                :properties="properties"
+                :loading="loading"
+                :error="error"
+                :pagination="pagination"
+                :primary-color="siteSettings.color_primario || '#3B82F6'"
+                @reset-filters="resetFilters"
+                @change-page="changePage"
+                @view-property="viewProperty"
+                @sort-change="handleSortChange"
+            />
+        </div>
+    </div>
 </template>
 
 <script setup>
@@ -28,7 +37,6 @@ import PropertyGrid from '@/components/web/Home/PropertyGrid.vue';
 const { siteSettings } = useSiteSettings();
 const router = useRouter();
 
-// Estados
 const loading = ref(true);
 const error = ref(null);
 const properties = ref([]);
@@ -53,9 +61,9 @@ const filters = ref({
     min_area: null,
     features: [],
     page: 1,
+    sort_by: 'recent',
 });
 
-// Métodos
 const fetchProperties = async () => {
     try {
         loading.value = true;
@@ -64,31 +72,43 @@ const fetchProperties = async () => {
         const params = new URLSearchParams();
 
         Object.keys(filters.value).forEach(key => {
-            if (filters.value[key] && key !== 'features') {
+            if (filters.value[key] !== null && filters.value[key] !== '' && key !== 'features') {
                 if (key === 'property_type') {
                     params.append('property_type_id', filters.value[key]);
                 } else if (key === 'operation_type') {
-                    params.append('operation_type_id', filters.value[key]);
+                    if (filters.value[key] !== '') {
+                        params.append('operation_type_id', filters.value[key]);
+                    }
                 } else {
                     params.append(key, filters.value[key]);
                 }
             }
         });
 
-        if (filters.value.features.length > 0) {
+        if (filters.value.features && filters.value.features.length > 0) {
             params.append('features', filters.value.features.join(','));
         }
 
         const response = await getProperties(`?${params.toString()}`);
-        properties.value = response.data.data || response.data;
 
-        if (response.data.meta) {
-            pagination.value = {
-                current_page: response.data.meta.current_page,
-                last_page: response.data.meta.last_page,
-                per_page: response.data.meta.per_page,
-                total: response.data.meta.total,
-            };
+        if (response.data) {
+            properties.value = response.data.data || response.data;
+
+            if (response.data.meta) {
+                pagination.value = {
+                    current_page: response.data.meta.current_page,
+                    last_page: response.data.meta.last_page,
+                    per_page: response.data.meta.per_page,
+                    total: response.data.meta.total,
+                };
+            } else if (response.data.current_page) {
+                pagination.value = {
+                    current_page: response.data.current_page,
+                    last_page: response.data.last_page,
+                    per_page: response.data.per_page,
+                    total: response.data.total,
+                };
+            }
         }
     } catch (err) {
         error.value = 'Error al cargar las propiedades. Por favor, intenta nuevamente.';
@@ -99,12 +119,11 @@ const fetchProperties = async () => {
 };
 
 const viewProperty = propertyId => {
-    console.log('Navigating to property:', propertyId); // Debug
     router.push(`/propiedad/${propertyId}`);
 };
 
 const applyFilters = newFilters => {
-    filters.value = { ...newFilters, page: 1 };
+    filters.value = { ...filters.value, ...newFilters, page: 1 };
     fetchProperties();
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
 };
@@ -124,8 +143,30 @@ const resetFilters = () => {
         min_area: null,
         features: [],
         page: 1,
+        sort_by: 'recent',
     };
     fetchProperties();
+};
+
+const showAllProperties = () => {
+    filters.value = {
+        operation_type: '',
+        property_type: '',
+        location: '',
+        min_price: null,
+        max_price: null,
+        bedrooms: null,
+        bathrooms: null,
+        parking: null,
+        street: '',
+        status: '',
+        min_area: null,
+        features: [],
+        page: 1,
+        sort_by: 'recent',
+    };
+    fetchProperties();
+    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
 };
 
 const changePage = page => {
@@ -133,6 +174,11 @@ const changePage = page => {
     filters.value.page = page;
     fetchProperties();
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+};
+
+const handleSortChange = sortBy => {
+    filters.value.sort_by = sortBy;
+    fetchProperties();
 };
 
 onMounted(() => {

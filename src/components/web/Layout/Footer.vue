@@ -272,13 +272,13 @@ import {
     Cookie,
 } from 'lucide-vue-next';
 
-defineProps({
+const props = defineProps({
     siteSettings: {
         type: Object,
         required: true,
     },
 });
-
+console.log(props.siteSettings);
 const email = ref('');
 
 const handleSubscribe = () => {

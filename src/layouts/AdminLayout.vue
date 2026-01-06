@@ -239,7 +239,7 @@
                 <div class="my-4 border-t border-neutral-200"></div>
 
                 <!-- Configuración -->
-                <router-link to="/settings" custom v-slot="{ isActive, navigate }">
+                <router-link to="/admin/settings" custom v-slot="{ isActive, navigate }">
                     <button
                         @click="
                             () => {
@@ -575,14 +575,14 @@ onKeyStroke('Escape', () => {
 
 // Menú items
 const menuItems = ref([
-    { name: 'Dashboard', to: '/dashboard', icon: Home },
+    { name: 'Dashboard', to: '/admin/dashboard', icon: Home },
     {
         name: 'Propiedades',
-        to: '/properties',
+        to: '/admin/properties',
         icon: Building2,
         badge: '24',
     },
-    { name: 'Usuarios', to: '/users', icon: Users },
+    { name: 'Usuarios', to: '/admin/users', icon: Users },
     /* { name: 'Reportes', to: '/reports', icon: BarChart3 }, */
 ]);
 

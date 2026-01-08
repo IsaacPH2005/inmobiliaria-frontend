@@ -4,12 +4,7 @@
         <div v-if="loading" class="loading-container">
             <div class="loading-content">
                 <div class="loader-wrapper">
-                    <Loader2
-                        :size="48"
-                        class="animate-spin sm:w-16 sm:h-16"
-                        :style="{ color: primaryColor }"
-                    />
-                    <div class="loader-circle" :style="{ borderColor: primaryColor }"></div>
+                    <Loader2 :size="48" class="animate-spin" :style="{ color: primaryColor }" />
                 </div>
                 <p class="loading-text">Cargando detalles...</p>
                 <div class="loading-dots">
@@ -20,107 +15,92 @@
             </div>
         </div>
 
-        <!-- Error State - Mobile First -->
+        <!-- Error State -->
         <div v-else-if="error" class="error-container">
             <div class="error-content">
                 <div class="error-icon-wrapper">
-                    <AlertCircle :size="48" class="error-icon sm:w-16 sm:h-16" />
+                    <AlertCircle :size="48" class="error-icon" />
                 </div>
                 <h2 class="error-title">¡Ups! Algo salió mal</h2>
                 <p class="error-message">{{ error }}</p>
                 <div class="error-actions">
                     <button @click="fetchPropertyDetails" class="retry-button">
-                        <RotateCcw :size="18" class="sm:w-5 sm:h-5" />
+                        <RotateCcw :size="18" />
                         <span>Reintentar</span>
                     </button>
                     <button @click="goBack" class="back-link">
-                        <ArrowLeft :size="14" class="sm:w-4 sm:h-4" />
+                        <ArrowLeft :size="14" />
                         <span>Volver</span>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Property Content - Mobile First -->
+        <!-- Property Content -->
         <div v-else-if="property.id" class="property-content">
             <!-- Sticky Header -->
-            <transition name="slide-down">
-                <div v-show="showStickyHeader" class="sticky-header">
-                    <div class="header-content">
-                        <button @click="goBack" class="back-button-header">
-                            <ArrowLeft :size="18" class="sm:w-5 sm:h-5" />
-                            <span class="hidden sm:inline">Volver</span>
+            <div v-show="showStickyHeader" class="sticky-header">
+                <div class="header-content">
+                    <button @click="goBack" class="back-button-header">
+                        <ArrowLeft :size="18" />
+                        <span class="hidden sm:inline">Volver</span>
+                    </button>
+
+                    <div class="header-info">
+                        <h2 class="header-title">{{ property.descripcion_corta }}</h2>
+                        <p class="header-price">{{ formatPrice(property.price?.precio) }}</p>
+                    </div>
+
+                    <div class="header-actions">
+                        <button @click="handleShare" class="icon-button" aria-label="Compartir">
+                            <Share2 :size="18" />
                         </button>
-
-                        <div class="header-info">
-                            <h2 class="header-title">{{ property.descripcion_corta }}</h2>
-                            <p class="header-price">{{ formatPrice(property.price?.precio) }}</p>
-                        </div>
-
-                        <div class="header-actions">
-                            <button
-                                @click="handleShare"
-                                class="icon-button"
-                                title="Compartir"
-                                aria-label="Compartir propiedad"
-                            >
-                                <Share2 :size="18" class="sm:w-5 sm:h-5" />
-                            </button>
-                            <button
-                                @click="handleFavorite"
-                                class="icon-button"
-                                :class="{ 'favorite-active': isFavorite }"
-                                title="Guardar"
-                                aria-label="Guardar en favoritos"
-                            >
-                                <Heart
-                                    :size="18"
-                                    class="sm:w-5 sm:h-5"
-                                    :class="{ 'fill-current': isFavorite }"
-                                />
-                            </button>
-                        </div>
+                        <button
+                            @click="handleFavorite"
+                            class="icon-button"
+                            :class="{ 'favorite-active': isFavorite }"
+                            aria-label="Guardar"
+                        >
+                            <Heart :size="18" :class="{ 'fill-current': isFavorite }" />
+                        </button>
                     </div>
                 </div>
-            </transition>
+            </div>
 
-            <!-- Hero Section - Mobile First -->
+            <!-- Hero Section -->
             <div class="hero-section">
                 <div class="container-wide">
-                    <!-- Breadcrumb - Hidden on mobile -->
+                    <!-- Breadcrumb -->
                     <nav class="breadcrumb" aria-label="Breadcrumb">
                         <button @click="goBack" class="breadcrumb-link">
-                            <Home :size="14" class="sm:w-4 sm:h-4" />
+                            <Home :size="14" />
                             <span class="hidden xs:inline">Inicio</span>
                         </button>
-                        <ChevronRight :size="14" class="breadcrumb-separator sm:w-4 sm:h-4" />
+                        <ChevronRight :size="14" class="breadcrumb-separator" />
                         <span class="truncate breadcrumb-current">{{ property.type?.nombre }}</span>
-                        <ChevronRight
-                            :size="14"
-                            class="hidden breadcrumb-separator sm:inline sm:w-4 sm:h-4"
-                        />
+                        <ChevronRight :size="14" class="hidden breadcrumb-separator sm:inline" />
                         <span class="hidden breadcrumb-current sm:inline">{{
                             property.codigo_interno
                         }}</span>
                     </nav>
 
-                    <!-- Title and Actions - Mobile optimized -->
+                    <!-- Title and Actions -->
                     <div class="hero-header">
                         <div class="hero-left">
                             <h1 class="hero-title">{{ property.descripcion_corta }}</h1>
                             <div class="hero-meta">
                                 <span class="meta-item">
-                                    <MapPin :size="14" class="sm:w-4 sm:h-4" />
+                                    <MapPin :size="14" />
                                     <span class="truncate">{{ formatLocation }}</span>
                                 </span>
                                 <span class="hidden meta-separator xs:inline">•</span>
                                 <span class="hidden meta-item xs:flex">
-                                    <Eye :size="14" class="sm:w-4 sm:h-4" />
+                                    <Eye :size="14" />
                                     <span>{{ formatViews(property.seo?.visitas) }}</span>
                                 </span>
                                 <span class="hidden meta-separator sm:inline">•</span>
                                 <span class="hidden meta-item sm:flex">
-                                    <Clock :size="14" class="sm:w-4 sm:h-4" />
+                                    <Clock :size="14" />
                                     <span>{{ getTimeAgo(property.created_at) }}</span>
                                 </span>
                             </div>
@@ -128,7 +108,7 @@
 
                         <div class="hero-actions">
                             <button @click="handleShare" class="action-button secondary">
-                                <Share2 :size="16" class="sm:w-5 sm:h-5" />
+                                <Share2 :size="16" />
                                 <span class="hidden md:inline">Compartir</span>
                             </button>
                             <button
@@ -136,11 +116,7 @@
                                 class="action-button secondary"
                                 :class="{ 'favorite-active': isFavorite }"
                             >
-                                <Heart
-                                    :size="16"
-                                    class="sm:w-5 sm:h-5"
-                                    :class="{ 'fill-current': isFavorite }"
-                                />
+                                <Heart :size="16" :class="{ 'fill-current': isFavorite }" />
                                 <span class="hidden md:inline">{{
                                     isFavorite ? 'Guardado' : 'Guardar'
                                 }}</span>
@@ -155,19 +131,20 @@
                 <div class="container-wide">
                     <PropertyImages
                         :images="property.images"
-                        :title="property.descripcion_corta"
-                        :primary-color="primaryColor"
+                        :title="property.nombre"
+                        :property-id="property.id"
+                        :primary-color="siteSettings.color_primario"
                     />
                 </div>
             </div>
 
-            <!-- Main Content - Mobile First Grid -->
+            <!-- Main Content -->
             <div class="main-content">
                 <div class="container-wide">
                     <div class="content-grid">
-                        <!-- Left Column - Property Details -->
+                        <!-- Left Column -->
                         <div class="left-column">
-                            <!-- Price Card - Mobile optimized -->
+                            <!-- Price Card -->
                             <div class="price-card">
                                 <div class="price-header">
                                     <div class="price-info">
@@ -196,17 +173,14 @@
                                             v-if="property.seo?.destacada"
                                             class="badge badge-warning"
                                         >
-                                            <Star
-                                                :size="12"
-                                                class="fill-current sm:w-3.5 sm:h-3.5"
-                                            />
+                                            <Star :size="12" class="fill-current" />
                                             <span>Destacada</span>
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Tabs - Mobile optimized -->
+                            <!-- Tabs -->
                             <div class="tabs-container">
                                 <div class="tabs" role="tablist">
                                     <button
@@ -226,53 +200,46 @@
                                         role="tab"
                                         :aria-selected="activeTab === tab.id"
                                     >
-                                        <component
-                                            :is="tab.icon"
-                                            :size="16"
-                                            class="sm:w-5 sm:h-5"
-                                        />
+                                        <component :is="tab.icon" :size="16" />
                                         <span class="text-sm sm:text-base">{{ tab.label }}</span>
                                     </button>
                                 </div>
 
                                 <!-- Tab Content -->
                                 <div class="tab-content" role="tabpanel">
-                                    <transition name="fade" mode="out-in">
-                                        <div v-if="activeTab === 'details'" key="details">
-                                            <PropertyDetails
-                                                :property="property"
-                                                :primary-color="primaryColor"
-                                            />
-                                        </div>
+                                    <div v-if="activeTab === 'details'" key="details">
+                                        <PropertyDetails
+                                            :property="property"
+                                            :primary-color="primaryColor"
+                                        />
+                                    </div>
 
-                                        <div v-else-if="activeTab === 'location'" key="location">
-                                            <PropertyLocation
-                                                :location="property.location"
-                                                :primary-color="primaryColor"
-                                            />
-                                        </div>
+                                    <div v-else-if="activeTab === 'location'" key="location">
+                                        <PropertyLocation
+                                            :location="property.location"
+                                            :primary-color="primaryColor"
+                                        />
+                                    </div>
 
-                                        <div v-else-if="activeTab === 'contact'" key="contact">
-                                            <ContactForm
-                                                :agent-email="
-                                                    property.agent?.email ||
-                                                    'agente@inmobiliaria.com'
-                                                "
-                                                :primary-color="primaryColor"
-                                                :property-id="property.id"
-                                                :property-title="property.descripcion_corta"
-                                                @submit="handleContactSubmit"
-                                            />
-                                        </div>
-                                    </transition>
+                                    <div v-else-if="activeTab === 'contact'" key="contact">
+                                        <ContactForm
+                                            :agent-email="
+                                                property.agent?.email || 'agente@inmobiliaria.com'
+                                            "
+                                            :primary-color="primaryColor"
+                                            :property-id="property.id"
+                                            :property-title="property.descripcion_corta"
+                                            @submit="handleContactSubmit"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Right Column - Contact Card - Mobile becomes bottom -->
+                        <!-- Right Column -->
                         <div class="right-column">
                             <div class="sticky-sidebar">
-                                <!-- Contact Card - Mobile optimized -->
+                                <!-- Contact Card -->
                                 <div class="contact-card">
                                     <h3 class="contact-card-title">¿Te interesa esta propiedad?</h3>
 
@@ -303,17 +270,14 @@
                                             @click="handleWhatsAppContact"
                                             class="contact-button whatsapp"
                                         >
-                                            <Phone :size="18" class="sm:w-5 sm:h-5" />
+                                            <Phone :size="18" />
                                             <div class="button-content">
                                                 <span class="button-label">WhatsApp</span>
                                                 <span class="button-sublabel"
                                                     >Respuesta inmediata</span
                                                 >
                                             </div>
-                                            <ChevronRight
-                                                :size="16"
-                                                class="button-arrow sm:w-5 sm:h-5"
-                                            />
+                                            <ChevronRight :size="16" class="button-arrow" />
                                         </button>
 
                                         <button
@@ -324,39 +288,33 @@
                                             class="contact-button email"
                                             :style="{ backgroundColor: primaryColor }"
                                         >
-                                            <Send :size="18" class="sm:w-5 sm:h-5" />
+                                            <Send :size="18" />
                                             <div class="button-content">
                                                 <span class="button-label">Enviar mensaje</span>
                                                 <span class="button-sublabel"
                                                     >Te responderemos pronto</span
                                                 >
                                             </div>
-                                            <ChevronRight
-                                                :size="16"
-                                                class="button-arrow sm:w-5 sm:h-5"
-                                            />
+                                            <ChevronRight :size="16" class="button-arrow" />
                                         </button>
 
                                         <button
                                             @click="handleCallRequest"
                                             class="contact-button call"
                                         >
-                                            <PhoneCall :size="18" class="sm:w-5 sm:h-5" />
+                                            <PhoneCall :size="18" />
                                             <div class="button-content">
                                                 <span class="button-label">Solicitar llamada</span>
                                                 <span class="button-sublabel">Te contactamos</span>
                                             </div>
-                                            <ChevronRight
-                                                :size="16"
-                                                class="button-arrow sm:w-5 sm:h-5"
-                                            />
+                                            <ChevronRight :size="16" class="button-arrow" />
                                         </button>
                                     </div>
 
                                     <!-- Agent Info -->
                                     <div v-if="property.agent" class="agent-info">
                                         <div class="agent-avatar">
-                                            <User :size="20" class="sm:w-6 sm:h-6" />
+                                            <User :size="20" />
                                         </div>
                                         <div class="agent-details">
                                             <p class="agent-name">
@@ -368,12 +326,12 @@
 
                                     <!-- Security badge -->
                                     <div class="security-badge">
-                                        <Shield :size="14" class="sm:w-4 sm:h-4" />
+                                        <Shield :size="14" />
                                         <span>Información verificada</span>
                                     </div>
                                 </div>
 
-                                <!-- Features Summary Card - Mobile optimized -->
+                                <!-- Features Summary Card -->
                                 <div class="features-summary">
                                     <h3 class="summary-title">Características principales</h3>
                                     <div class="summary-grid">
@@ -385,7 +343,7 @@
                                                     color: primaryColor,
                                                 }"
                                             >
-                                                <Bed :size="18" class="sm:w-5 sm:h-5" />
+                                                <Bed :size="18" />
                                             </div>
                                             <div class="summary-text">
                                                 <span class="summary-value">{{
@@ -402,7 +360,7 @@
                                                     color: primaryColor,
                                                 }"
                                             >
-                                                <Bath :size="18" class="sm:w-5 sm:h-5" />
+                                                <Bath :size="18" />
                                             </div>
                                             <div class="summary-text">
                                                 <span class="summary-value">{{
@@ -419,7 +377,7 @@
                                                     color: primaryColor,
                                                 }"
                                             >
-                                                <Square :size="18" class="sm:w-5 sm:h-5" />
+                                                <Square :size="18" />
                                             </div>
                                             <div class="summary-text">
                                                 <span class="summary-value">{{
@@ -436,7 +394,7 @@
                                                     color: primaryColor,
                                                 }"
                                             >
-                                                <Car :size="18" class="sm:w-5 sm:h-5" />
+                                                <Car :size="18" />
                                             </div>
                                             <div class="summary-text">
                                                 <span class="summary-value">{{
@@ -453,14 +411,14 @@
                 </div>
             </div>
 
-            <!-- Floating Action Buttons (Mobile Only) -->
+            <!-- Floating Action Buttons (Mobile Only) - POSICIÓN AJUSTADA -->
             <div class="floating-actions">
                 <button
                     @click="handleWhatsAppContact"
                     class="fab fab-whatsapp"
-                    aria-label="Contactar por WhatsApp"
+                    aria-label="WhatsApp"
                 >
-                    <Phone :size="20" class="sm:w-6 sm:h-6" />
+                    <Phone :size="20" />
                 </button>
                 <button
                     @click="
@@ -469,9 +427,9 @@
                     "
                     class="fab fab-message"
                     :style="{ backgroundColor: primaryColor }"
-                    aria-label="Enviar mensaje"
+                    aria-label="Mensaje"
                 >
-                    <Send :size="20" class="sm:w-6 sm:h-6" />
+                    <Send :size="20" />
                 </button>
             </div>
         </div>
@@ -508,7 +466,6 @@ import {
     Square,
     Car,
     PhoneCall,
-    Building2,
 } from 'lucide-vue-next';
 import PropertyImages from '@/components/web/Home/PropertyImages.vue';
 import PropertyDetails from '@/components/web/Home/PropertyDetails.vue';
@@ -546,6 +503,19 @@ const formatLocation = computed(() => {
     return parts.join(', ');
 });
 
+// Debounce helper
+const debounce = (func, wait) => {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+};
+
 // Methods
 const fetchPropertyDetails = async () => {
     try {
@@ -554,7 +524,6 @@ const fetchPropertyDetails = async () => {
         const response = await getProperty(route.params.id);
         property.value = response.data;
 
-        // Cargar favoritos del localStorage
         const favorites = JSON.parse(localStorage.getItem('favoriteProperties') || '[]');
         isFavorite.value = favorites.includes(property.value.id);
 
@@ -622,8 +591,22 @@ const handleFavorite = () => {
 };
 
 const copyToClipboard = text => {
-    navigator.clipboard.writeText(text);
-    alert('Enlace copiado al portapapeles');
+    // WebView-compatible fallback
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+
+    try {
+        document.execCommand('copy');
+        alert('Enlace copiado al portapapeles');
+    } catch (err) {
+        alert('No se pudo copiar el enlace');
+    }
+
+    document.body.removeChild(textArea);
 };
 
 const scrollToTabs = () => {
@@ -682,9 +665,9 @@ const getStatusClass = status => {
     return statusMap[status] || 'status-default';
 };
 
-const handleScroll = () => {
+const handleScroll = debounce(() => {
     showStickyHeader.value = window.scrollY > 400;
-};
+}, 100);
 
 onMounted(() => {
     fetchPropertyDetails();
@@ -697,42 +680,43 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* Base Styles - Mobile First */
+/* Base - Mobile First */
+* {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Permitir selección en inputs y texto */
+input,
+textarea,
+[contenteditable],
+p,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    -webkit-user-select: text;
+    user-select: text;
+}
+
 .property-detail-container {
     min-height: 100vh;
     background-color: #f9fafb;
 }
 
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-
-.slide-down-enter-active,
-.slide-down-leave-active {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-down-enter-from,
-.slide-down-leave-to {
-    transform: translateY(-100%);
-    opacity: 0;
-}
-
-/* Loading State - Mobile First */
+/* Loading State */
 .loading-container {
     position: fixed;
     inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #667eea;
     z-index: 9999;
     padding: 1rem;
 }
@@ -742,24 +726,9 @@ onUnmounted(() => {
 }
 
 .loader-wrapper {
-    position: relative;
     display: inline-block;
     margin-bottom: 1rem;
-}
-
-.loader-circle {
-    position: absolute;
-    inset: -8px;
-    border: 2px solid transparent;
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: rotate 2s linear infinite;
-}
-
-@keyframes rotate {
-    to {
-        transform: rotate(360deg);
-    }
+    color: white;
 }
 
 .loading-text {
@@ -811,7 +780,7 @@ onUnmounted(() => {
     }
 }
 
-/* Error State - Mobile First */
+/* Error State */
 .error-container {
     min-height: 100vh;
     display: flex;
@@ -821,22 +790,10 @@ onUnmounted(() => {
     background-color: #f9fafb;
 }
 
-@media (min-width: 640px) {
-    .error-container {
-        padding: 2rem;
-    }
-}
-
 .error-content {
     text-align: center;
     max-width: 400px;
     width: 100%;
-}
-
-@media (min-width: 640px) {
-    .error-content {
-        max-width: 500px;
-    }
 }
 
 .error-icon-wrapper {
@@ -845,27 +802,6 @@ onUnmounted(() => {
     background-color: #fee2e2;
     border-radius: 50%;
     margin-bottom: 1rem;
-    animation: shake 0.5s;
-}
-
-@media (min-width: 640px) {
-    .error-icon-wrapper {
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-}
-
-@keyframes shake {
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-    25% {
-        transform: translateX(-10px);
-    }
-    75% {
-        transform: translateX(10px);
-    }
 }
 
 .error-icon {
@@ -879,13 +815,6 @@ onUnmounted(() => {
     margin-bottom: 0.5rem;
 }
 
-@media (min-width: 640px) {
-    .error-title {
-        font-size: 2rem;
-        margin-bottom: 0.75rem;
-    }
-}
-
 .error-message {
     color: #6b7280;
     font-size: 0.875rem;
@@ -893,25 +822,10 @@ onUnmounted(() => {
     line-height: 1.6;
 }
 
-@media (min-width: 640px) {
-    .error-message {
-        font-size: 1.125rem;
-        margin-bottom: 2rem;
-    }
-}
-
 .error-actions {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    align-items: stretch;
-}
-
-@media (min-width: 640px) {
-    .error-actions {
-        gap: 1rem;
-        align-items: center;
-    }
 }
 
 .retry-button {
@@ -927,27 +841,19 @@ onUnmounted(() => {
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
-    transition: all 0.3s;
-    width: 100%;
+    min-height: 44px;
+    transition: all 0.2s;
 }
 
-@media (min-width: 640px) {
-    .retry-button {
-        width: auto;
-        padding: 1rem 2.5rem;
-        gap: 0.75rem;
-        font-size: 1rem;
+@media (hover: hover) {
+    .retry-button:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
     }
 }
 
-.retry-button:hover {
-    background-color: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4);
-}
-
 .retry-button:active {
-    transform: translateY(0) scale(0.98);
+    transform: scale(0.98);
 }
 
 .back-link {
@@ -961,35 +867,25 @@ onUnmounted(() => {
     cursor: pointer;
     padding: 0.625rem 1rem;
     border-radius: 0.5rem;
-    transition: all 0.2s;
     font-size: 0.875rem;
-    width: 100%;
+    min-height: 44px;
+    transition: all 0.2s;
 }
 
-@media (min-width: 640px) {
-    .back-link {
-        width: auto;
-        gap: 0.5rem;
-        font-size: 0.9375rem;
-        padding: 0.625rem 1.25rem;
+@media (hover: hover) {
+    .back-link:hover {
+        color: #111827;
+        background-color: #f3f4f6;
     }
-}
-
-.back-link:hover {
-    color: #111827;
-    background-color: #f3f4f6;
-}
-
-.back-link:active {
-    transform: scale(0.98);
 }
 
 /* Property Content */
 .property-content {
     min-height: 100vh;
+    padding-bottom: 6rem; /* Espacio extra para los botones flotantes */
 }
 
-/* Sticky Header - Mobile optimized */
+/* Sticky Header */
 .sticky-header {
     position: fixed;
     top: 0;
@@ -997,7 +893,7 @@ onUnmounted(() => {
     right: 0;
     z-index: 40;
     background-color: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(8px);
     border-bottom: 1px solid #e5e7eb;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
@@ -1015,7 +911,6 @@ onUnmounted(() => {
 @media (min-width: 640px) {
     .header-content {
         padding: 0.875rem 1.5rem;
-        gap: 1rem;
     }
 }
 
@@ -1029,34 +924,15 @@ onUnmounted(() => {
     border-radius: 0.625rem;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
     color: #374151;
     font-size: 0.875rem;
+    min-height: 44px;
+    transition: all 0.2s;
 }
 
-@media (min-width: 640px) {
-    .back-button-header {
-        gap: 0.5rem;
-        padding: 0.625rem 1rem;
-    }
-}
-
-.back-button-header:hover {
-    background-color: #e5e7eb;
-    transform: translateX(-2px);
-}
-
-.back-button-header:active {
-    transform: translateX(0) scale(0.98);
-}
-
-.hidden {
-    display: none;
-}
-
-@media (min-width: 640px) {
-    .sm\\:inline {
-        display: inline;
+@media (hover: hover) {
+    .back-button-header:hover {
+        background-color: #e5e7eb;
     }
 }
 
@@ -1072,25 +948,11 @@ onUnmounted(() => {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 0.125rem;
-}
-
-@media (min-width: 640px) {
-    .header-title {
-        font-size: 1rem;
-    }
 }
 
 .header-price {
     font-size: 0.75rem;
-    font-weight: 600;
     color: #6b7280;
-}
-
-@media (min-width: 640px) {
-    .header-price {
-        font-size: 0.875rem;
-    }
 }
 
 .header-actions {
@@ -1098,59 +960,42 @@ onUnmounted(() => {
     gap: 0.375rem;
 }
 
-@media (min-width: 640px) {
-    .header-actions {
-        gap: 0.5rem;
-    }
-}
-
 .icon-button {
     padding: 0.5rem;
     background-color: #f3f4f6;
     border: none;
-    border-radius: 0.625rem;
+    border-radius: 0.5rem;
     cursor: pointer;
-    transition: all 0.2s;
-    color: #6b7280;
+    color: #374151;
+    min-height: 44px;
+    min-width: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
 
-@media (min-width: 640px) {
-    .icon-button {
-        padding: 0.625rem;
+@media (hover: hover) {
+    .icon-button:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
     }
-}
-
-.icon-button:hover {
-    background-color: #e5e7eb;
-    transform: scale(1.05);
-    color: #111827;
-}
-
-.icon-button:active {
-    transform: scale(0.95);
 }
 
 .icon-button.favorite-active {
     color: #ef4444;
-    background-color: #fee2e2;
 }
 
-.fill-current {
-    fill: currentColor;
-}
-
-/* Hero Section - Mobile First */
+/* Hero Section */
 .hero-section {
     background-color: white;
-    padding: 1rem 0 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 1rem 0;
 }
 
 @media (min-width: 640px) {
     .hero-section {
-        padding: 1.5rem 0 1rem;
+        padding: 1.5rem 0;
     }
 }
 
@@ -1169,77 +1014,46 @@ onUnmounted(() => {
 .breadcrumb {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
+    gap: 0.5rem;
     margin-bottom: 1rem;
-    font-size: 0.75rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-}
-
-@media (min-width: 640px) {
-    .breadcrumb {
-        gap: 0.5rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.875rem;
-    }
-}
-
-.breadcrumb::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
 }
 
 .breadcrumb-link {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.375rem;
     color: #6b7280;
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.25rem 0.5rem;
     border-radius: 0.375rem;
+    font-size: 0.875rem;
     transition: all 0.2s;
-    white-space: nowrap;
-    flex-shrink: 0;
 }
 
-@media (min-width: 640px) {
-    .breadcrumb-link {
-        gap: 0.375rem;
-        padding: 0.375rem 0.625rem;
+@media (hover: hover) {
+    .breadcrumb-link:hover {
+        background-color: #f3f4f6;
+        color: #111827;
     }
-}
-
-.breadcrumb-link:hover {
-    color: #111827;
-    background-color: #f3f4f6;
-}
-
-.breadcrumb-link:active {
-    transform: scale(0.98);
 }
 
 .breadcrumb-separator {
     color: #d1d5db;
-    flex-shrink: 0;
 }
 
 .breadcrumb-current {
     color: #111827;
+    font-size: 0.875rem;
     font-weight: 500;
-    max-width: 120px;
-}
-
-@media (min-width: 640px) {
-    .breadcrumb-current {
-        max-width: none;
-    }
 }
 
 .truncate {
+    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 .hero-header {
@@ -1247,13 +1061,6 @@ onUnmounted(() => {
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
-    flex-wrap: wrap;
-}
-
-@media (min-width: 768px) {
-    .hero-header {
-        gap: 2rem;
-    }
 }
 
 .hero-left {
@@ -1262,53 +1069,31 @@ onUnmounted(() => {
 }
 
 .hero-title {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: #111827;
     margin-bottom: 0.5rem;
-    line-height: 1.2;
 }
 
 @media (min-width: 640px) {
     .hero-title {
-        font-size: 1.5rem;
-        margin-bottom: 0.625rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .hero-title {
         font-size: 2rem;
-        margin-bottom: 0.75rem;
     }
 }
 
 .hero-meta {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
-    flex-wrap: wrap;
     color: #6b7280;
-    font-size: 0.75rem;
-}
-
-@media (min-width: 640px) {
-    .hero-meta {
-        gap: 0.75rem;
-        font-size: 0.875rem;
-    }
+    font-size: 0.875rem;
 }
 
 .meta-item {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-}
-
-@media (min-width: 640px) {
-    .meta-item {
-        gap: 0.375rem;
-    }
+    gap: 0.375rem;
 }
 
 .meta-separator {
@@ -1329,22 +1114,14 @@ onUnmounted(() => {
 .action-button {
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.625rem 1rem;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
     border: none;
-    border-radius: 0.625rem;
-    font-weight: 500;
+    border-radius: 0.75rem;
+    font-weight: 600;
     cursor: pointer;
+    min-height: 44px;
     transition: all 0.2s;
-    font-size: 0.875rem;
-}
-
-@media (min-width: 768px) {
-    .action-button {
-        gap: 0.5rem;
-        padding: 0.75rem 1.25rem;
-        font-size: 0.9375rem;
-    }
 }
 
 .action-button.secondary {
@@ -1352,45 +1129,43 @@ onUnmounted(() => {
     color: #374151;
 }
 
-.action-button.secondary:hover {
-    background-color: #e5e7eb;
-    transform: translateY(-1px);
-}
-
-.action-button.secondary:active {
-    transform: translateY(0) scale(0.98);
+@media (hover: hover) {
+    .action-button.secondary:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
+    }
 }
 
 .action-button.favorite-active {
     color: #ef4444;
 }
 
-/* Gallery Section - Mobile First */
+/* Gallery Section */
 .gallery-section {
     background-color: white;
-    padding: 1rem 0 1.5rem;
+    padding: 1rem 0;
 }
 
 @media (min-width: 640px) {
     .gallery-section {
-        padding: 1.5rem 0 2rem;
+        padding: 1.5rem 0;
     }
 }
 
-/* Main Content - Mobile First */
+/* Main Content */
 .main-content {
-    padding: 1.5rem 0 2rem;
+    padding: 1rem 0 6rem 0; /* Bottom padding para botones flotantes */
 }
 
 @media (min-width: 640px) {
     .main-content {
-        padding: 2rem 0 2.5rem;
+        padding: 1.5rem 0 6rem 0;
     }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
     .main-content {
-        padding: 2rem 0 3rem;
+        padding: 1.5rem 0; /* En desktop no necesitamos el padding extra */
     }
 }
 
@@ -1407,129 +1182,65 @@ onUnmounted(() => {
     }
 }
 
-@media (min-width: 1280px) {
-    .content-grid {
-        grid-template-columns: 1fr 400px;
-    }
-}
-
 /* Left Column */
 .left-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
+    min-width: 0;
 }
 
-@media (min-width: 640px) {
-    .left-column {
-        gap: 1.5rem;
-    }
-}
-
-/* Price Card - Mobile First */
+/* Price Card */
 .price-card {
     background-color: white;
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     padding: 1.25rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    transition: box-shadow 0.3s;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e5e7eb;
 }
 
 @media (min-width: 640px) {
     .price-card {
-        border-radius: 1rem;
         padding: 1.5rem;
     }
-}
-
-.price-card:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .price-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    flex-wrap: wrap;
     gap: 1rem;
-}
-
-@media (min-width: 640px) {
-    .price-header {
-        gap: 1.5rem;
-    }
+    flex-wrap: wrap;
 }
 
 .price-info {
     flex: 1;
-    min-width: 180px;
-}
-
-@media (min-width: 640px) {
-    .price-info {
-        min-width: 200px;
-    }
 }
 
 .price-label {
+    font-size: 0.875rem;
     color: #6b7280;
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-bottom: 0.375rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-@media (min-width: 640px) {
-    .price-label {
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-    }
+    margin-bottom: 0.25rem;
 }
 
 .price-amount {
-    font-size: 1.75rem;
+    font-size: 1.875rem;
     font-weight: 700;
-    line-height: 1;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.25rem;
 }
 
 @media (min-width: 640px) {
     .price-amount {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-}
-
-@media (min-width: 768px) {
-    .price-amount {
-        font-size: 2.5rem;
+        font-size: 2.25rem;
     }
 }
 
 .price-per-sqm {
-    color: #6b7280;
     font-size: 0.875rem;
-    font-weight: 500;
-}
-
-@media (min-width: 640px) {
-    .price-per-sqm {
-        font-size: 0.9375rem;
-    }
+    color: #6b7280;
 }
 
 .badges {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.375rem;
-    align-items: flex-start;
-}
-
-@media (min-width: 640px) {
-    .badges {
-        gap: 0.5rem;
-    }
+    gap: 0.5rem;
 }
 
 .badge {
@@ -1543,18 +1254,6 @@ onUnmounted(() => {
     color: white;
 }
 
-@media (min-width: 640px) {
-    .badge {
-        gap: 0.375rem;
-        padding: 0.5rem 1rem;
-        font-size: 0.875rem;
-    }
-}
-
-.badge-primary {
-    background-color: #3b82f6;
-}
-
 .badge-success {
     background-color: #10b981;
 }
@@ -1563,18 +1262,12 @@ onUnmounted(() => {
     background-color: #f59e0b;
 }
 
-/* Tabs - Mobile First */
+/* Tabs */
 .tabs-container {
     background-color: white;
-    border-radius: 0.875rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
     overflow: hidden;
-}
-
-@media (min-width: 640px) {
-    .tabs-container {
-        border-radius: 1rem;
-    }
 }
 
 .tabs {
@@ -1589,38 +1282,27 @@ onUnmounted(() => {
 }
 
 .tab {
+    flex: 1;
     display: flex;
     align-items: center;
-    gap: 0.375rem;
-    padding: 0.875rem 1rem;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem;
     background: none;
     border: none;
     border-bottom: 3px solid transparent;
+    cursor: pointer;
     color: #6b7280;
     font-weight: 500;
-    cursor: pointer;
+    min-height: 56px;
     white-space: nowrap;
     transition: all 0.2s;
-    font-size: 0.875rem;
-    flex: 1;
-    justify-content: center;
 }
 
-@media (min-width: 640px) {
-    .tab {
-        gap: 0.625rem;
-        padding: 1rem 1.5rem;
-        font-size: 0.9375rem;
+@media (hover: hover) {
+    .tab:hover {
+        background-color: #f9fafb;
     }
-}
-
-.tab:hover {
-    color: #111827;
-    background-color: #f9fafb;
-}
-
-.tab:active {
-    transform: scale(0.98);
 }
 
 .tab.active {
@@ -1629,53 +1311,37 @@ onUnmounted(() => {
 
 .tab-content {
     padding: 1.25rem;
-    min-height: 150px;
 }
 
 @media (min-width: 640px) {
     .tab-content {
         padding: 1.5rem;
-        min-height: 200px;
     }
 }
 
-@media (min-width: 768px) {
-    .tab-content {
-        padding: 2rem;
-    }
-}
-
-/* Right Column - Mobile becomes bottom */
+/* Right Column */
 .right-column {
+    min-width: 0;
+}
+
+.sticky-sidebar {
+    position: sticky;
+    top: 5rem;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
-@media (min-width: 640px) {
-    .right-column {
-        gap: 1.5rem;
-    }
-}
-
-@media (min-width: 1024px) {
-    .sticky-sidebar {
-        position: sticky;
-        top: 6rem;
-    }
-}
-
-/* Contact Card - Mobile First */
+/* Contact Card */
 .contact-card {
     background-color: white;
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     padding: 1.25rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
 }
 
 @media (min-width: 640px) {
     .contact-card {
-        border-radius: 1rem;
         padding: 1.5rem;
     }
 }
@@ -1687,31 +1353,13 @@ onUnmounted(() => {
     margin-bottom: 1rem;
 }
 
-@media (min-width: 640px) {
-    .contact-card-title {
-        font-size: 1.25rem;
-        margin-bottom: 1.25rem;
-    }
-}
-
 .quick-info {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    margin-bottom: 1.25rem;
-    padding: 0.875rem;
-    background-color: #f9fafb;
-    border-radius: 0.625rem;
-    border: 1px solid #e5e7eb;
-}
-
-@media (min-width: 640px) {
-    .quick-info {
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        border-radius: 0.75rem;
-    }
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .info-item {
@@ -1721,41 +1369,20 @@ onUnmounted(() => {
 }
 
 .info-label {
+    font-size: 0.875rem;
     color: #6b7280;
-    font-size: 0.8125rem;
-    font-weight: 500;
-}
-
-@media (min-width: 640px) {
-    .info-label {
-        font-size: 0.875rem;
-    }
 }
 
 .info-value {
-    color: #111827;
-    font-weight: 600;
     font-size: 0.875rem;
-}
-
-@media (min-width: 640px) {
-    .info-value {
-        font-size: 0.9375rem;
-    }
+    font-weight: 600;
+    color: #111827;
 }
 
 .status-badge {
-    padding: 0.25rem 0.625rem;
+    padding: 0.25rem 0.75rem;
     border-radius: 9999px;
-    font-size: 0.6875rem;
-    font-weight: 600;
-}
-
-@media (min-width: 640px) {
-    .status-badge {
-        padding: 0.25rem 0.75rem;
-        font-size: 0.75rem;
-    }
+    font-size: 0.75rem;
 }
 
 .status-available {
@@ -1786,152 +1413,93 @@ onUnmounted(() => {
 .contact-buttons {
     display: flex;
     flex-direction: column;
-    gap: 0.625rem;
-    margin-bottom: 1.25rem;
-}
-
-@media (min-width: 640px) {
-    .contact-buttons {
-        gap: 0.75rem;
-        margin-bottom: 1.5rem;
-    }
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
 .contact-button {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem 1rem;
+    padding: 1rem;
     border: none;
     border-radius: 0.75rem;
-    font-weight: 600;
-    color: white;
     cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-}
-
-@media (min-width: 640px) {
-    .contact-button {
-        gap: 1rem;
-        padding: 1rem 1.25rem;
-        border-radius: 0.875rem;
-    }
-}
-
-.contact-button::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    transform: translateX(-100%);
-    transition: transform 0.6s;
-}
-
-.contact-button:hover::before {
-    transform: translateX(100%);
-}
-
-.contact-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.2);
-}
-
-.contact-button:active {
-    transform: translateY(0) scale(0.98);
+    min-height: 56px;
+    transition: all 0.2s;
 }
 
 .contact-button.whatsapp {
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+    background-color: #25d366;
+    color: white;
+}
+
+@media (hover: hover) {
+    .contact-button.whatsapp:hover {
+        background-color: #20ba5a;
+        transform: translateY(-1px);
+    }
 }
 
 .contact-button.email {
-    background-color: #3b82f6;
+    color: white;
 }
 
 .contact-button.call {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+@media (hover: hover) {
+    .contact-button.call:hover {
+        background-color: #e5e7eb;
+        transform: translateY(-1px);
+    }
 }
 
 .button-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
     flex: 1;
+    text-align: left;
 }
 
 .button-label {
+    display: block;
+    font-weight: 600;
     font-size: 0.875rem;
-}
-
-@media (min-width: 640px) {
-    .button-label {
-        font-size: 0.9375rem;
-    }
+    margin-bottom: 0.125rem;
 }
 
 .button-sublabel {
-    font-size: 0.6875rem;
-    opacity: 0.9;
-    font-weight: 400;
-    margin-top: 0.125rem;
-}
-
-@media (min-width: 640px) {
-    .button-sublabel {
-        font-size: 0.75rem;
-    }
+    display: block;
+    font-size: 0.75rem;
+    opacity: 0.8;
 }
 
 .button-arrow {
-    opacity: 0.7;
-    transition: transform 0.3s;
-    flex-shrink: 0;
+    opacity: 0.6;
 }
 
-.contact-button:hover .button-arrow {
-    transform: translateX(4px);
-}
-
+/* Agent Info */
 .agent-info {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.875rem;
+    padding: 1rem;
     background-color: #f9fafb;
-    border-radius: 0.625rem;
-    border: 1px solid #e5e7eb;
-    margin-bottom: 0.875rem;
-}
-
-@media (min-width: 640px) {
-    .agent-info {
-        gap: 1rem;
-        padding: 1rem;
-        border-radius: 0.75rem;
-        margin-bottom: 1rem;
-    }
+    border-radius: 0.75rem;
+    margin-bottom: 1rem;
 }
 
 .agent-avatar {
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3rem;
+    height: 3rem;
     border-radius: 50%;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    background-color: #e5e7eb;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+    color: #6b7280;
     flex-shrink: 0;
-}
-
-@media (min-width: 640px) {
-    .agent-avatar {
-        width: 3rem;
-        height: 3rem;
-    }
 }
 
 .agent-details {
@@ -1942,15 +1510,8 @@ onUnmounted(() => {
 .agent-name {
     font-weight: 600;
     color: #111827;
-    margin-bottom: 0.125rem;
     font-size: 0.875rem;
-}
-
-@media (min-width: 640px) {
-    .agent-name {
-        margin-bottom: 0.25rem;
-        font-size: 0.9375rem;
-    }
+    margin-bottom: 0.125rem;
 }
 
 .agent-email {
@@ -1961,44 +1522,30 @@ onUnmounted(() => {
     white-space: nowrap;
 }
 
-@media (min-width: 640px) {
-    .agent-email {
-        font-size: 0.875rem;
-    }
-}
-
+/* Security Badge */
 .security-badge {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     padding: 0.75rem;
-    background-color: #ecfdf5;
+    background-color: #f0fdf4;
     border-radius: 0.5rem;
-    color: #065f46;
+    color: #15803d;
     font-size: 0.75rem;
     font-weight: 500;
 }
 
-@media (min-width: 640px) {
-    .security-badge {
-        gap: 0.625rem;
-        padding: 0.875rem;
-        border-radius: 0.625rem;
-        font-size: 0.875rem;
-    }
-}
-
-/* Features Summary - Mobile First */
+/* Features Summary */
 .features-summary {
     background-color: white;
-    border-radius: 0.875rem;
+    border-radius: 0.75rem;
     padding: 1.25rem;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
 }
 
 @media (min-width: 640px) {
     .features-summary {
-        border-radius: 1rem;
         padding: 1.5rem;
     }
 }
@@ -2010,56 +1557,21 @@ onUnmounted(() => {
     margin-bottom: 1rem;
 }
 
-@media (min-width: 640px) {
-    .summary-title {
-        font-size: 1.125rem;
-        margin-bottom: 1.25rem;
-    }
-}
-
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-    .summary-grid {
-        gap: 1rem;
-    }
+    gap: 1rem;
 }
 
 .summary-item {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.875rem;
-    background-color: #f9fafb;
-    border-radius: 0.625rem;
-    border: 1px solid #e5e7eb;
-    transition: all 0.2s;
-}
-
-@media (min-width: 640px) {
-    .summary-item {
-        gap: 0.875rem;
-        padding: 1rem;
-        border-radius: 0.75rem;
-    }
-}
-
-.summary-item:hover {
-    background-color: #f3f4f6;
-    transform: translateY(-1px);
-}
-
-.summary-item:active {
-    transform: translateY(0);
+    gap: 0.75rem;
 }
 
 .summary-icon {
-    width: 2rem;
-    height: 2rem;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
@@ -2067,61 +1579,39 @@ onUnmounted(() => {
     flex-shrink: 0;
 }
 
-@media (min-width: 640px) {
-    .summary-icon {
-        width: 2.5rem;
-        height: 2.5rem;
-        border-radius: 0.625rem;
-    }
-}
-
 .summary-text {
-    display: flex;
-    flex-direction: column;
+    flex: 1;
+    min-width: 0;
 }
 
 .summary-value {
-    font-size: 1rem;
+    display: block;
+    font-size: 1.125rem;
     font-weight: 700;
     color: #111827;
-    line-height: 1;
-}
-
-@media (min-width: 640px) {
-    .summary-value {
-        font-size: 1.125rem;
-    }
 }
 
 .summary-label {
-    font-size: 0.6875rem;
+    display: block;
+    font-size: 0.75rem;
     color: #6b7280;
-    font-weight: 500;
-    margin-top: 0.25rem;
 }
 
-@media (min-width: 640px) {
-    .summary-label {
-        font-size: 0.75rem;
-    }
-}
-
-/* Floating Action Buttons - Mobile Only */
+/* Floating Action Buttons - POSICIÓN AJUSTADA MÁS ARRIBA */
 .floating-actions {
     position: fixed;
-    bottom: 1rem;
+    bottom: 5.5rem; /* Aumentado de 1rem a 5.5rem para evitar choque con header */
     right: 1rem;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    z-index: 30;
 }
 
-@media (min-width: 640px) {
+/* En caso de tener AdminLayout con header fijo en mobile */
+@media (max-width: 1024px) {
     .floating-actions {
-        bottom: 1.5rem;
-        right: 1.5rem;
-        gap: 1rem;
+        bottom: 9.5rem; /* Espacio suficiente sobre el header móvil */
     }
 }
 
@@ -2132,66 +1622,113 @@ onUnmounted(() => {
 }
 
 .fab {
-    width: 3.25rem;
-    height: 3.25rem;
+    width: 3.5rem;
+    height: 3.5rem;
     border-radius: 50%;
     border: none;
-    color: white;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-}
-
-@media (min-width: 640px) {
-    .fab {
-        width: 3.75rem;
-        height: 3.75rem;
-    }
-}
-
-.fab:hover {
-    transform: scale(1.1);
-    box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.4);
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fab:active {
     transform: scale(0.95);
 }
 
-.fab-whatsapp {
-    background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
-}
-
-.fab-message {
-    background-color: #3b82f6;
-}
-
-/* Animations */
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
+@media (hover: hover) {
+    .fab:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
+}
+
+.fab-whatsapp {
+    background-color: #25d366;
+}
+
+@media (hover: hover) {
+    .fab-whatsapp:hover {
+        background-color: #20ba5a;
+    }
+}
+
+/* Utility Classes */
+.hidden {
+    display: none;
+}
+
+@media (min-width: 400px) {
+    .xs\:inline {
+        display: inline;
+    }
+    .xs\:flex {
+        display: flex;
+    }
+}
+
+@media (min-width: 640px) {
+    .sm\:inline {
+        display: inline;
+    }
+    .sm\:flex {
+        display: flex;
+    }
+}
+
+@media (min-width: 768px) {
+    .md\:inline {
+        display: inline;
+    }
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.fill-current {
+    fill: currentColor;
 }
 
 .animate-spin {
     animation: spin 1s linear infinite;
 }
 
-/* Breakpoint personalizado para muy pequeñas pantallas */
-@media (min-width: 400px) {
-    .xs\\:inline {
-        display: inline;
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
     }
-    .xs\\:flex {
-        display: flex;
+    to {
+        transform: rotate(360deg);
     }
 }
 
-/* Touch optimization */
+/* Optimización WebView */
 * {
-    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevenir zoom en inputs en mobile */
+@media screen and (max-width: 768px) {
+    input,
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 0.15s;
 }
 </style>

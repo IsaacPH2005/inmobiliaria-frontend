@@ -1,53 +1,52 @@
 <template>
-    <div class="p-4 lg:p-6">
-        <!-- Header -->
-        <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+    <div class="p-4 sm:p-6">
+        <!-- Header - Mobile First -->
+        <div
+            class="flex flex-col gap-3 mb-6 sm:flex-row sm:items-center sm:justify-between sm:mb-8"
+        >
             <div>
-                <h1 class="text-3xl font-bold text-neutral-900">Usuarios</h1>
-                <p class="mt-1 text-neutral-500">Gestiona todos los usuarios del sistema</p>
+                <h1 class="text-2xl font-bold sm:text-3xl text-neutral-900">Usuarios</h1>
+                <p class="mt-1 text-sm sm:text-base text-neutral-500">
+                    Gestiona todos los usuarios del sistema
+                </p>
             </div>
             <button
                 @click="openCreateModal"
-                class="flex items-center gap-2 px-5 py-3 font-medium text-white transition-all duration-300 rounded-lg hover:shadow-lg"
+                class="flex items-center justify-center gap-2 px-4 py-2.5 sm:px-5 sm:py-3 font-medium text-white transition-all duration-300 rounded-lg shadow-md hover:shadow-lg active:scale-95"
                 :style="{
                     backgroundColor: siteSettings?.color_primario || '#2563eb',
                 }"
-                @mouseenter="
-                    e =>
-                        (e.target.style.backgroundColor = darkenColor(
-                            siteSettings?.color_primario || '#2563eb',
-                            10
-                        ))
-                "
-                @mouseleave="
-                    e =>
-                        (e.target.style.backgroundColor = siteSettings?.color_primario || '#2563eb')
-                "
+                @mouseenter="e => (e.target.style.opacity = '0.9')"
+                @mouseleave="e => (e.target.style.opacity = '1')"
             >
                 <UserPlus class="w-5 h-5" />
-                Nuevo Usuario
+                <span class="text-sm sm:text-base">Nuevo Usuario</span>
             </button>
         </div>
 
-        <!-- Estadísticas -->
-        <div class="grid grid-cols-1 gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
+        <!-- Estadísticas - Mobile First Grid -->
+        <div class="grid grid-cols-2 gap-3 mb-6 sm:gap-4 lg:grid-cols-4">
             <!-- Total -->
-            <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
+            <div
+                class="p-4 transition-shadow bg-white border shadow-sm sm:p-5 rounded-xl border-neutral-200 hover:shadow-md"
+            >
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-neutral-500">Total Usuarios</p>
-                        <p class="mt-2 text-3xl font-bold text-neutral-900">
+                    <div class="flex-1">
+                        <p class="text-xs font-medium sm:text-sm text-neutral-500">
+                            Total Usuarios
+                        </p>
+                        <p class="mt-1 text-2xl font-bold sm:mt-2 sm:text-3xl text-neutral-900">
                             {{ statistics.total }}
                         </p>
                     </div>
                     <div
-                        class="p-3 rounded-lg"
+                        class="flex items-center justify-center w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                         :style="{
                             backgroundColor: `${siteSettings?.color_primario || '#2563eb'}20`,
                         }"
                     >
                         <Users
-                            class="w-8 h-8"
+                            class="w-5 h-5 sm:w-6 sm:h-6"
                             :style="{ color: siteSettings?.color_primario || '#2563eb' }"
                         />
                     </div>
@@ -55,66 +54,79 @@
             </div>
 
             <!-- Activos -->
-            <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
+            <div
+                class="p-4 transition-shadow bg-white border shadow-sm sm:p-5 rounded-xl border-neutral-200 hover:shadow-md"
+            >
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-neutral-500">Activos</p>
-                        <p class="mt-2 text-3xl font-bold text-green-600">
+                    <div class="flex-1">
+                        <p class="text-xs font-medium sm:text-sm text-neutral-500">Activos</p>
+                        <p class="mt-1 text-2xl font-bold text-green-600 sm:mt-2 sm:text-3xl">
                             {{ statistics.active }}
                         </p>
                     </div>
-                    <div class="p-3 bg-green-100 rounded-lg">
-                        <CheckCircle class="w-8 h-8 text-green-600" />
+                    <div
+                        class="flex items-center justify-center w-10 h-10 bg-green-100 rounded-lg sm:w-12 sm:h-12"
+                    >
+                        <CheckCircle class="w-5 h-5 text-green-600 sm:w-6 sm:h-6" />
                     </div>
                 </div>
             </div>
 
             <!-- Inactivos -->
-            <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
+            <div
+                class="p-4 transition-shadow bg-white border shadow-sm sm:p-5 rounded-xl border-neutral-200 hover:shadow-md"
+            >
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-neutral-500">Inactivos</p>
-                        <p class="mt-2 text-3xl font-bold text-red-600">
+                    <div class="flex-1">
+                        <p class="text-xs font-medium sm:text-sm text-neutral-500">Inactivos</p>
+                        <p class="mt-1 text-2xl font-bold text-red-600 sm:mt-2 sm:text-3xl">
                             {{ statistics.inactive }}
                         </p>
                     </div>
-                    <div class="p-3 bg-red-100 rounded-lg">
-                        <Lock class="w-8 h-8 text-red-600" />
+                    <div
+                        class="flex items-center justify-center w-10 h-10 bg-red-100 rounded-lg sm:w-12 sm:h-12"
+                    >
+                        <Lock class="w-5 h-5 text-red-600 sm:w-6 sm:h-6" />
                     </div>
                 </div>
             </div>
 
             <!-- Agentes -->
-            <div class="p-5 bg-white border shadow-sm rounded-xl border-neutral-200">
+            <div
+                class="col-span-2 p-4 transition-shadow bg-white border shadow-sm sm:p-5 rounded-xl border-neutral-200 hover:shadow-md lg:col-span-1"
+            >
                 <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-neutral-500">Agentes</p>
-                        <p class="mt-2 text-3xl font-bold text-orange-600">
+                    <div class="flex-1">
+                        <p class="text-xs font-medium sm:text-sm text-neutral-500">Agentes</p>
+                        <p class="mt-1 text-2xl font-bold text-orange-600 sm:mt-2 sm:text-3xl">
                             {{ statistics.agents }}
                         </p>
                     </div>
-                    <div class="p-3 bg-orange-100 rounded-lg">
-                        <Briefcase class="w-8 h-8 text-orange-600" />
+                    <div
+                        class="flex items-center justify-center w-10 h-10 bg-orange-100 rounded-lg sm:w-12 sm:h-12"
+                    >
+                        <Briefcase class="w-5 h-5 text-orange-600 sm:w-6 sm:h-6" />
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Filtros y buscador -->
-        <div class="p-5 mb-6 bg-white border shadow-sm rounded-xl border-neutral-200">
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <div>
-                    <label class="block mb-1 text-sm font-medium text-neutral-700">Buscar</label>
+        <!-- Filtros - Mobile First -->
+        <div class="p-4 mb-6 bg-white border shadow-sm sm:p-5 rounded-xl border-neutral-200">
+            <div class="grid grid-cols-1 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <!-- Buscador -->
+                <div class="sm:col-span-2 lg:col-span-1">
+                    <label class="block mb-1.5 text-sm font-medium text-neutral-700">Buscar</label>
                     <div class="relative">
                         <Search
-                            class="absolute w-5 h-5 -translate-y-1/2 left-3 top-1/2 text-neutral-400"
+                            class="absolute w-4 h-4 -translate-y-1/2 left-3 top-1/2 text-neutral-400"
                         />
                         <input
                             v-model="filters.search"
                             @input="debouncedFetch"
                             type="text"
                             placeholder="Nombre, email..."
-                            class="w-full py-2 pl-10 pr-4 border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
+                            class="w-full py-2 pl-10 pr-4 text-sm border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
                             :style="{
                                 '--tw-ring-color': siteSettings?.color_primario || '#2563eb',
                             }"
@@ -122,12 +134,13 @@
                     </div>
                 </div>
 
+                <!-- Rol -->
                 <div>
-                    <label class="block mb-1 text-sm font-medium text-neutral-700">Rol</label>
+                    <label class="block mb-1.5 text-sm font-medium text-neutral-700">Rol</label>
                     <select
                         v-model="filters.role"
                         @change="fetchUsers"
-                        class="w-full px-4 py-2 border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
+                        class="w-full px-3 py-2 text-sm border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
                         :style="{
                             '--tw-ring-color': siteSettings?.color_primario || '#2563eb',
                         }"
@@ -139,12 +152,13 @@
                     </select>
                 </div>
 
+                <!-- Estado -->
                 <div>
-                    <label class="block mb-1 text-sm font-medium text-neutral-700">Estado</label>
+                    <label class="block mb-1.5 text-sm font-medium text-neutral-700">Estado</label>
                     <select
                         v-model="filters.status"
                         @change="fetchUsers"
-                        class="w-full px-4 py-2 border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
+                        class="w-full px-3 py-2 text-sm border rounded-lg border-neutral-300 focus:outline-none focus:ring-2 focus:border-transparent"
                         :style="{
                             '--tw-ring-color': siteSettings?.color_primario || '#2563eb',
                         }"
@@ -155,10 +169,11 @@
                     </select>
                 </div>
 
-                <div class="flex items-end">
+                <!-- Limpiar -->
+                <div class="flex items-end sm:col-span-2 lg:col-span-1">
                     <button
                         @click="clearFilters"
-                        class="w-full px-4 py-2 text-sm font-medium text-gray-700 transition-colors bg-gray-100 rounded-lg hover:bg-gray-200"
+                        class="w-full px-4 py-2 text-sm font-medium transition-colors rounded-lg text-neutral-700 bg-neutral-100 hover:bg-neutral-200 active:scale-95"
                     >
                         Limpiar filtros
                     </button>
@@ -166,17 +181,18 @@
             </div>
         </div>
 
-        <!-- Indicador de resultados -->
-        <div v-if="!loading && users.length > 0" class="mb-4 text-sm text-gray-600">
-            Mostrando {{ users.length }} de {{ pagination.total }} usuarios
+        <!-- Contador de resultados -->
+        <div v-if="!loading && users.length > 0" class="mb-3 text-xs sm:text-sm text-neutral-600">
+            Mostrando <span class="font-semibold">{{ users.length }}</span> de
+            <span class="font-semibold">{{ pagination.total }}</span> usuarios
         </div>
 
-        <!-- Tabla -->
+        <!-- Contenedor de tabla/cards -->
         <div class="overflow-hidden bg-white border shadow-sm rounded-xl border-neutral-200">
-            <!-- Loading -->
-            <div v-if="loading" class="p-8 text-center">
+            <!-- Loading State -->
+            <div v-if="loading" class="flex flex-col items-center justify-center p-12 sm:p-16">
                 <div
-                    class="inline-block w-8 h-8 border-4 rounded-full border-t-transparent animate-spin"
+                    class="w-12 h-12 border-4 rounded-full border-t-transparent animate-spin"
                     :style="{
                         borderColor: `${
                             siteSettings?.color_primario || '#2563eb'
@@ -186,27 +202,22 @@
                 <p class="mt-4 text-sm text-neutral-500">Cargando usuarios...</p>
             </div>
 
-            <!-- Empty state -->
-            <div v-else-if="!loading && (!users || users.length === 0)" class="py-12 text-center">
-                <Users class="w-16 h-16 mx-auto mb-4 text-neutral-300" />
-                <h3 class="mb-2 text-lg font-semibold text-neutral-900">No hay usuarios</h3>
-                <p class="mb-4 text-neutral-500">Comienza creando el primer usuario</p>
+            <!-- Empty State -->
+            <div
+                v-else-if="!loading && (!users || users.length === 0)"
+                class="py-12 text-center sm:py-16"
+            >
+                <Users class="w-16 h-16 mx-auto mb-4 text-neutral-300 sm:w-20 sm:h-20" />
+                <h3 class="mb-2 text-base font-semibold sm:text-lg text-neutral-900">
+                    No hay usuarios
+                </h3>
+                <p class="mb-6 text-sm text-neutral-500 sm:text-base">
+                    Comienza creando el primer usuario
+                </p>
                 <button
                     @click="openCreateModal"
-                    class="inline-flex items-center gap-2 px-5 py-2 font-medium text-white transition-all duration-300 rounded-lg hover:shadow-lg"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 font-medium text-white transition-all duration-300 rounded-lg shadow-md hover:shadow-lg active:scale-95"
                     :style="{ backgroundColor: siteSettings?.color_primario || '#2563eb' }"
-                    @mouseenter="
-                        e =>
-                            (e.target.style.backgroundColor = darkenColor(
-                                siteSettings?.color_primario || '#2563eb',
-                                10
-                            ))
-                    "
-                    @mouseleave="
-                        e =>
-                            (e.target.style.backgroundColor =
-                                siteSettings?.color_primario || '#2563eb')
-                    "
                 >
                     <UserPlus class="w-5 h-5" />
                     Nuevo Usuario
@@ -262,7 +273,7 @@
                                     <div class="relative flex-shrink-0">
                                         <div
                                             v-if="user.avatar && getAvatarUrl(user.avatar)"
-                                            class="w-10 h-10 overflow-hidden rounded-full"
+                                            class="w-10 h-10 overflow-hidden rounded-full ring-2 ring-neutral-100"
                                         >
                                             <img
                                                 :src="getAvatarUrl(user.avatar)"
@@ -273,7 +284,7 @@
                                         </div>
                                         <div
                                             v-else
-                                            class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full"
+                                            class="flex items-center justify-center w-10 h-10 text-sm font-bold text-white rounded-full ring-2 ring-neutral-100"
                                             :style="{
                                                 background: `linear-gradient(135deg, ${
                                                     siteSettings?.color_primario || '#2563eb'
@@ -356,29 +367,20 @@
 
                             <!-- Acciones -->
                             <td class="px-6 py-4 text-right whitespace-nowrap">
-                                <div class="flex items-center justify-end gap-2">
+                                <div class="flex items-center justify-end gap-1">
                                     <button
                                         @click="openEditModal(user)"
-                                        class="p-2 transition-all rounded-lg hover:bg-opacity-10"
+                                        class="p-2 transition-all rounded-lg hover:bg-blue-50 active:scale-95"
                                         :style="{
                                             color: siteSettings?.color_primario || '#2563eb',
                                         }"
-                                        @mouseenter="
-                                            e =>
-                                                (e.target.style.backgroundColor = `${
-                                                    siteSettings?.color_primario || '#2563eb'
-                                                }10`)
-                                        "
-                                        @mouseleave="
-                                            e => (e.target.style.backgroundColor = 'transparent')
-                                        "
                                         title="Editar"
                                     >
                                         <Edit class="w-4 h-4" />
                                     </button>
                                     <button
                                         @click="toggleUserStatus(user)"
-                                        class="p-2 transition-all rounded-lg text-neutral-600 hover:bg-neutral-100"
+                                        class="p-2 transition-all rounded-lg text-neutral-600 hover:bg-neutral-100 active:scale-95"
                                         :title="user.estado ? 'Desactivar' : 'Activar'"
                                     >
                                         <component
@@ -388,7 +390,7 @@
                                     </button>
                                     <button
                                         @click="confirmDelete(user)"
-                                        class="p-2 text-red-600 transition-all rounded-lg hover:bg-red-50"
+                                        class="p-2 text-red-600 transition-all rounded-lg hover:bg-red-50 active:scale-95"
                                         title="Eliminar"
                                     >
                                         <Trash2 class="w-4 h-4" />
@@ -405,14 +407,14 @@
                 <div
                     v-for="user in users"
                     :key="user.id"
-                    class="p-4 transition-colors hover:bg-neutral-50"
+                    class="p-4 transition-colors hover:bg-neutral-50 active:bg-neutral-100"
                 >
-                    <div class="flex items-start gap-4 mb-3">
+                    <div class="flex items-start gap-3 mb-3">
                         <!-- Avatar -->
                         <div class="relative flex-shrink-0">
                             <div
                                 v-if="user.avatar && getAvatarUrl(user.avatar)"
-                                class="w-12 h-12 overflow-hidden rounded-full"
+                                class="w-12 h-12 overflow-hidden rounded-full ring-2 ring-neutral-100"
                             >
                                 <img
                                     :src="getAvatarUrl(user.avatar)"
@@ -423,7 +425,7 @@
                             </div>
                             <div
                                 v-else
-                                class="flex items-center justify-center w-12 h-12 text-base font-bold text-white rounded-full"
+                                class="flex items-center justify-center w-12 h-12 text-base font-bold text-white rounded-full ring-2 ring-neutral-100"
                                 :style="{
                                     background: `linear-gradient(135deg, ${
                                         siteSettings?.color_primario || '#2563eb'
@@ -443,10 +445,12 @@
 
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
-                            <h3 class="text-base font-semibold text-neutral-900">
+                            <h3 class="text-sm font-semibold sm:text-base text-neutral-900">
                                 {{ user.general_data?.nombre }}
                             </h3>
-                            <p class="text-sm truncate text-neutral-500">{{ user.email }}</p>
+                            <p class="text-xs truncate sm:text-sm text-neutral-500">
+                                {{ user.email }}
+                            </p>
                             <p v-if="user.general_data?.celular" class="text-xs text-neutral-400">
                                 {{ user.general_data.celular }}
                             </p>
@@ -491,38 +495,26 @@
                         Creado: {{ formatDate(user.created_at) }}
                     </p>
 
-                    <!-- Acciones -->
-                    <div class="flex gap-2">
+                    <!-- Acciones Mobile -->
+                    <div class="grid grid-cols-3 gap-2">
                         <button
                             @click="openEditModal(user)"
-                            class="flex-1 px-3 py-2 text-sm font-medium text-white transition-all rounded-lg"
+                            class="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-white transition-all rounded-lg shadow-sm active:scale-95"
                             :style="{ backgroundColor: siteSettings?.color_primario || '#2563eb' }"
-                            @mouseenter="
-                                e =>
-                                    (e.target.style.backgroundColor = darkenColor(
-                                        siteSettings?.color_primario || '#2563eb',
-                                        10
-                                    ))
-                            "
-                            @mouseleave="
-                                e =>
-                                    (e.target.style.backgroundColor =
-                                        siteSettings?.color_primario || '#2563eb')
-                            "
                         >
-                            <Edit class="inline w-4 h-4 mr-1" />
-                            Editar
+                            <Edit class="w-4 h-4" />
+                            <span class="hidden sm:inline">Editar</span>
                         </button>
                         <button
                             @click="toggleUserStatus(user)"
-                            class="px-3 py-2 text-sm font-medium transition-all border rounded-lg text-neutral-700 border-neutral-300 hover:bg-neutral-100"
+                            class="flex items-center justify-center px-3 py-2 text-xs font-medium transition-all border rounded-lg text-neutral-700 border-neutral-300 hover:bg-neutral-100 active:scale-95"
                             :title="user.estado ? 'Desactivar' : 'Activar'"
                         >
                             <component :is="user.estado ? Lock : Unlock" class="w-4 h-4" />
                         </button>
                         <button
                             @click="confirmDelete(user)"
-                            class="px-3 py-2 text-sm font-medium text-red-600 transition-all border border-red-300 rounded-lg hover:bg-red-50"
+                            class="flex items-center justify-center px-3 py-2 text-xs font-medium text-red-600 transition-all border border-red-300 rounded-lg hover:bg-red-50 active:scale-95"
                         >
                             <Trash2 class="w-4 h-4" />
                         </button>
@@ -531,16 +523,41 @@
             </div>
         </div>
 
-        <!-- Paginación -->
+        <!-- Paginación Mobile-First -->
         <div v-if="pagination.last_page > 1" class="flex flex-col items-center gap-4 mt-6">
-            <div class="text-sm text-gray-600">
+            <div class="text-xs sm:text-sm text-neutral-600">
                 Página {{ pagination.current_page }} de {{ pagination.last_page }}
             </div>
-            <div class="flex items-center gap-2">
+
+            <!-- Mobile Pagination -->
+            <div class="flex items-center justify-center gap-2 lg:hidden">
+                <button
+                    @click="changePage(pagination.current_page - 1)"
+                    :disabled="pagination.current_page === 1"
+                    class="px-3 py-2 text-sm font-medium transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                >
+                    Anterior
+                </button>
+
+                <span class="px-3 py-2 text-sm font-semibold text-neutral-900">
+                    {{ pagination.current_page }}
+                </span>
+
+                <button
+                    @click="changePage(pagination.current_page + 1)"
+                    :disabled="pagination.current_page === pagination.last_page"
+                    class="px-3 py-2 text-sm font-medium transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+                >
+                    Siguiente
+                </button>
+            </div>
+
+            <!-- Desktop Pagination -->
+            <div class="items-center hidden gap-2 lg:flex">
                 <button
                     @click="changePage(1)"
                     :disabled="pagination.current_page === 1"
-                    class="px-3 py-2 font-medium transition-all duration-300 bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="p-2 transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     title="Primera página"
                 >
                     <ChevronsLeft class="w-5 h-5" />
@@ -549,7 +566,7 @@
                 <button
                     @click="changePage(pagination.current_page - 1)"
                     :disabled="pagination.current_page === 1"
-                    class="px-4 py-2 font-medium transition-all duration-300 bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 font-medium transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                     Anterior
                 </button>
@@ -559,7 +576,7 @@
                     :key="page"
                     @click="changePage(page)"
                     :class="[
-                        'px-4 py-2 rounded-lg font-medium transition-all duration-300',
+                        'px-4 py-2 rounded-lg font-medium transition-all active:scale-95',
                         pagination.current_page === page
                             ? 'text-white shadow-md'
                             : 'bg-white border border-neutral-300 hover:bg-neutral-50 hover:shadow-sm',
@@ -578,7 +595,7 @@
                 <button
                     @click="changePage(pagination.current_page + 1)"
                     :disabled="pagination.current_page === pagination.last_page"
-                    class="px-4 py-2 font-medium transition-all duration-300 bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 font-medium transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                 >
                     Siguiente
                 </button>
@@ -586,7 +603,7 @@
                 <button
                     @click="changePage(pagination.last_page)"
                     :disabled="pagination.current_page === pagination.last_page"
-                    class="px-3 py-2 font-medium transition-all duration-300 bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="p-2 transition-all bg-white border rounded-lg border-neutral-300 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
                     title="Última página"
                 >
                     <ChevronsRight class="w-5 h-5" />
@@ -606,8 +623,8 @@
             >
                 <div
                     v-if="showModal"
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-                    @click="closeModal"
+                    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                    @click="handleBackdropClick"
                 >
                     <Transition
                         enter-active-class="transition-transform duration-300"
@@ -620,26 +637,103 @@
                         <div
                             v-if="showModal"
                             @click.stop
-                            class="w-full max-w-2xl max-h-screen overflow-y-auto bg-white shadow-2xl rounded-xl"
+                            class="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white shadow-2xl rounded-xl"
                         >
                             <div
-                                class="flex items-center justify-between p-6 border-b border-neutral-200"
+                                class="sticky top-0 z-10 flex items-center justify-between p-4 bg-white border-b sm:p-6 border-neutral-200"
                             >
-                                <h2 class="text-2xl font-bold">
+                                <h2 class="text-xl font-bold sm:text-2xl text-neutral-900">
                                     {{ editingUser ? 'Editar' : 'Nuevo' }} Usuario
                                 </h2>
                                 <button
-                                    @click="closeModal"
-                                    class="p-2 transition-all duration-300 rounded-lg hover:bg-neutral-100"
+                                    @click="handleCloseModal"
+                                    class="p-2 transition-all rounded-lg hover:bg-neutral-100 active:scale-95"
+                                    title="Cerrar modal"
                                 >
-                                    <X class="w-6 h-6" />
+                                    <X class="w-5 h-5 sm:w-6 sm:h-6" />
                                 </button>
                             </div>
                             <UserForm
                                 :user="editingUser"
                                 @saved="onUserSaved"
-                                @cancel="closeModal"
+                                @cancel="handleCloseModal"
                             />
+                        </div>
+                    </Transition>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Modal de confirmación para cerrar el formulario -->
+        <Teleport to="body">
+            <Transition
+                enter-active-class="transition-opacity duration-200"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition-opacity duration-200"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div
+                    v-if="showConfirmClose"
+                    class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60"
+                    @click="showConfirmClose = false"
+                >
+                    <Transition
+                        enter-active-class="transition-all duration-200"
+                        enter-from-class="scale-90 opacity-0"
+                        enter-to-class="scale-100 opacity-100"
+                        leave-active-class="transition-all duration-200"
+                        leave-from-class="scale-100 opacity-100"
+                        leave-to-class="scale-90 opacity-0"
+                    >
+                        <div
+                            v-if="showConfirmClose"
+                            @click.stop
+                            class="w-full max-w-md p-6 bg-white shadow-2xl rounded-xl"
+                        >
+                            <div class="flex items-center gap-3 mb-4">
+                                <div
+                                    class="flex items-center justify-center flex-shrink-0 w-12 h-12 bg-red-100 rounded-full"
+                                >
+                                    <svg
+                                        class="w-6 h-6 text-red-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold text-neutral-900">
+                                        ¿Cerrar sin guardar?
+                                    </h3>
+                                    <p class="text-sm text-neutral-500">
+                                        Los cambios no guardados se perderán
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 mt-6">
+                                <button
+                                    @click="showConfirmClose = false"
+                                    class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                >
+                                    Continuar editando
+                                </button>
+                                <button
+                                    @click="confirmCloseModal"
+                                    class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+                                >
+                                    Cerrar sin guardar
+                                </button>
+                            </div>
                         </div>
                     </Transition>
                 </div>
@@ -706,6 +800,7 @@ const filters = reactive({
 });
 
 const showModal = ref(false);
+const showConfirmClose = ref(false);
 const editingUser = ref(null);
 
 // Páginas visibles
@@ -767,7 +862,7 @@ const fetchUsers = async () => {
     }
 };
 
-// Estadísticas (usa tu response: { success, data: {...} })
+// Estadísticas
 const fetchStatistics = async () => {
     try {
         const response = await getUserStatistics();
@@ -777,7 +872,6 @@ const fetchStatistics = async () => {
         statistics.value.active = payload.active || 0;
         statistics.value.inactive = payload.inactive || 0;
 
-        // admins si viniera en total_by_role
         const adminsRole = Array.isArray(payload.total_by_role)
             ? payload.total_by_role.find(r => r.name === 'admin')
             : null;
@@ -827,6 +921,22 @@ const openEditModal = async user => {
     }
 };
 
+// Manejo del clic en el backdrop
+const handleBackdropClick = () => {
+    showConfirmClose.value = true;
+};
+
+// Manejo del cierre con el botón X
+const handleCloseModal = () => {
+    showConfirmClose.value = true;
+};
+
+// Confirmar cierre del modal
+const confirmCloseModal = () => {
+    showConfirmClose.value = false;
+    closeModal();
+};
+
 const onUserSaved = () => {
     closeModal();
     fetchUsers();
@@ -844,7 +954,10 @@ const toggleUserStatus = async user => {
     if (confirm(`¿Estás seguro de ${action} a ${user.general_data?.nombre}?`)) {
         try {
             await toggleStatus(user.id);
-            toast.success(`Usuario ${action === 'activar' ? 'activado' : 'desactivado'}`);
+            toast.success(`Usuario ${action === 'activar' ? 'activado' : 'desactivado'}`, {
+                position: 'top-right',
+                timeout: 3000,
+            });
             fetchUsers();
             fetchStatistics();
         } catch (error) {
@@ -862,7 +975,10 @@ const confirmDelete = user => {
     ) {
         deleteUser(user.id)
             .then(() => {
-                toast.success('Usuario eliminado correctamente');
+                toast.success('Usuario eliminado correctamente', {
+                    position: 'top-right',
+                    timeout: 3000,
+                });
                 fetchUsers();
                 fetchStatistics();
             })
@@ -1021,26 +1137,45 @@ function debounce(func, wait) {
 </script>
 
 <style scoped>
+/* Touch optimization */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom scrollbar */
 .overflow-x-auto::-webkit-scrollbar {
     height: 8px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #f5f5f5;
     border-radius: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb {
-    background: #888;
+    background: #d1d5db;
     border-radius: 4px;
 }
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    background: #9ca3af;
 }
 
-input:focus,
-select:focus {
-    ring-color: v-bind('siteSettings?.color_primario || "#2563eb"');
+/* Modal scrollbar */
+.max-h-\[90vh\]::-webkit-scrollbar {
+    width: 6px;
+}
+
+.max-h-\[90vh\]::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.max-h-\[90vh\]::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+}
+
+.max-h-\[90vh\]::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
 }
 </style>

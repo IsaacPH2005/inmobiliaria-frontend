@@ -7,10 +7,12 @@ import Profile from '@/pages/admin/Profile.vue';
 import PropertiesAdmin from '@/pages/admin/PropertiesAdmin.vue';
 import SiteSettingsAdmin from '@/pages/admin/SiteSettingsAdmin.vue';
 import UsersAdmin from '@/pages/admin/UsersAdmin.vue';
+import PropertiesAgest from '@/pages/agente/PropertiesAgest.vue';
 import Login from '@/pages/auth/Login.vue';
 import Register from '@/pages/auth/Register.vue';
 import Notfound from '@/pages/notfound.vue';
 import ContactoPage from '@/pages/web/ContactoPage.vue';
+import FormularioPage from '@/pages/web/FormularioPage.vue';
 import HomePage from '@/pages/web/HomePage.vue';
 import NosotrosPage from '@/pages/web/NosotrosPage.vue';
 import ServiciosPage from '@/pages/web/ServiciosPage.vue';
@@ -74,6 +76,12 @@ const router = createRouter({
                     component: ContactoPage,
                     meta: { title: 'Contacto - Inmobiliaria' },
                 },
+                // router/index.js
+                {
+                    path: '/formulario',
+                    name: 'CrearConsignacion',
+                    component: FormularioPage,
+                },
             ],
         },
 
@@ -103,6 +111,14 @@ const router = createRouter({
                     },
                 },
                 {
+                    path: 'properties-agent',
+                    name: 'agent-properties',
+                    component: PropertiesAgest,
+                    meta: {
+                        title: 'Propiedades - Agent',
+                    },
+                },
+                {
                     path: 'users',
                     name: 'admin-users',
                     component: UsersAdmin,
@@ -116,7 +132,6 @@ const router = createRouter({
                     component: Profile,
                     meta: {
                         title: 'Perfil - Admin',
-                        requiresAuth: true,
                     },
                 },
                 {
@@ -173,7 +188,7 @@ router.beforeEach((to, from, next) => {
     document.title = to.meta.title || 'Inmobiliaria';
 
     // Verificar autenticación (puedes personalizar esta lógica)
-    const isAuthenticated = !!localStorage.getItem('auth_token'); // Ajusta según tu auth
+    const isAuthenticated = !!localStorage.getItem('token'); // Ajusta según tu auth
 
     // Si la ruta requiere autenticación y no está autenticado
     if (to.meta.requiresAuth && !isAuthenticated) {

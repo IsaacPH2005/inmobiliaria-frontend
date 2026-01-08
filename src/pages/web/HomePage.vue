@@ -28,7 +28,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { getProperties } from '@/services/PropertiesService';
+import { getPropertiesActives } from '@/services/PropertiesService';
 import { useSiteSettings } from '@/composables/useSiteSettings';
 import HeroSection from '@/components/web/Home/HeroSection.vue';
 import AdvancedSearchFilters from '@/components/web/Home/AdvancedSearchFilters.vue';
@@ -47,9 +47,11 @@ const pagination = ref({
     total: 0,
 });
 
+// 🔥 CAMBIO: Inicializar SIN FILTROS (operation_type vacío)
 const filters = ref({
-    operation_type: '1',
+    operation_type: '', // 🔥 Cambiado de '1' a ''
     property_type: '',
+    departamento: '', // 🔥 Agregado
     location: '',
     min_price: null,
     max_price: null,
@@ -61,7 +63,7 @@ const filters = ref({
     min_area: null,
     features: [],
     page: 1,
-    sort_by: 'recent',
+    sort_by: 'destacada', // 🔥 Cambiado de 'recent' a 'destacada'
 });
 
 const fetchProperties = async () => {
@@ -71,29 +73,38 @@ const fetchProperties = async () => {
 
         const params = new URLSearchParams();
 
+        // 🔥 SOLO agregar parámetros si tienen valor
         Object.keys(filters.value).forEach(key => {
-            if (filters.value[key] !== null && filters.value[key] !== '' && key !== 'features') {
+            const value = filters.value[key];
+
+            if (value !== null && value !== '' && key !== 'features') {
                 if (key === 'property_type') {
-                    params.append('property_type_id', filters.value[key]);
+                    params.append('property_type_id', value);
                 } else if (key === 'operation_type') {
-                    if (filters.value[key] !== '') {
-                        params.append('operation_type_id', filters.value[key]);
+                    // Solo agregar si no está vacío
+                    if (value !== '') {
+                        params.append('operation_type_id', value);
                     }
                 } else {
-                    params.append(key, filters.value[key]);
+                    params.append(key, value);
                 }
             }
         });
 
+        // Agregar características seleccionadas
         if (filters.value.features && filters.value.features.length > 0) {
             params.append('features', filters.value.features.join(','));
         }
 
-        const response = await getProperties(`?${params.toString()}`);
+        // 🔥 Llamar al endpoint de propiedades activas
+        const response = await getPropertiesActives(`?${params.toString()}`);
+
+        console.log('✅ Propiedades cargadas:', response.data);
 
         if (response.data) {
             properties.value = response.data.data || response.data;
 
+            // Actualizar paginación
             if (response.data.meta) {
                 pagination.value = {
                     current_page: response.data.meta.current_page,
@@ -112,7 +123,7 @@ const fetchProperties = async () => {
         }
     } catch (err) {
         error.value = 'Error al cargar las propiedades. Por favor, intenta nuevamente.';
-        console.error('Error fetching properties:', err);
+        console.error('❌ Error fetching properties:', err);
     } finally {
         loading.value = false;
     }
@@ -123,15 +134,18 @@ const viewProperty = propertyId => {
 };
 
 const applyFilters = newFilters => {
+    console.log('🔍 Aplicando filtros:', newFilters);
     filters.value = { ...filters.value, ...newFilters, page: 1 };
     fetchProperties();
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
 };
 
 const resetFilters = () => {
+    console.log('🔄 Reseteando filtros - Mostrar Ventas (ID: 1)');
     filters.value = {
-        operation_type: '1',
+        operation_type: '1', // Volver a Ventas por defecto
         property_type: '',
+        departamento: '',
         location: '',
         min_price: null,
         max_price: null,
@@ -143,15 +157,17 @@ const resetFilters = () => {
         min_area: null,
         features: [],
         page: 1,
-        sort_by: 'recent',
+        sort_by: 'destacada',
     };
     fetchProperties();
 };
 
 const showAllProperties = () => {
+    console.log('👁️ Mostrando TODAS las propiedades activas');
     filters.value = {
-        operation_type: '',
+        operation_type: '', // 🔥 Sin filtro de operación
         property_type: '',
+        departamento: '',
         location: '',
         min_price: null,
         max_price: null,
@@ -163,7 +179,7 @@ const showAllProperties = () => {
         min_area: null,
         features: [],
         page: 1,
-        sort_by: 'recent',
+        sort_by: 'destacada',
     };
     fetchProperties();
     window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
@@ -177,11 +193,13 @@ const changePage = page => {
 };
 
 const handleSortChange = sortBy => {
+    console.log('🔀 Cambiando orden:', sortBy);
     filters.value.sort_by = sortBy;
     fetchProperties();
 };
 
 onMounted(() => {
+    console.log('🚀 Cargando propiedades activas...');
     fetchProperties();
 });
 </script>

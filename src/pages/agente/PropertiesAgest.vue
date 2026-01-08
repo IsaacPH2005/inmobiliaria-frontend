@@ -3,10 +3,8 @@
         <!-- Header -->
         <div class="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-neutral-900">Propiedades</h1>
-                <p class="mt-1 text-neutral-500">
-                    Gestiona todas las propiedades de la inmobiliaria
-                </p>
+                <h1 class="text-3xl font-bold text-neutral-900">Mis Consignaciones</h1>
+                <p class="mt-1 text-neutral-500">Gestiona tus propiedades inmobiliarias</p>
             </div>
             <button
                 @click="openCreateModal"
@@ -25,7 +23,7 @@
                 "
             >
                 <Plus class="w-5 h-5" />
-                Nueva Propiedad
+                Nueva Consignacion
             </button>
         </div>
 
@@ -162,7 +160,7 @@
             class="py-12 text-center bg-white border rounded-xl border-neutral-200"
         >
             <Home class="w-16 h-16 mx-auto mb-4 text-neutral-300" />
-            <h3 class="mb-2 text-lg font-semibold text-neutral-900">No hay propiedades</h3>
+            <h3 class="mb-2 text-lg font-semibold text-neutral-900">No tienes propiedades</h3>
             <p class="mb-4 text-neutral-500">Comienza creando tu primera propiedad</p>
             <button
                 @click="openCreateModal"
@@ -284,7 +282,7 @@
                     <!-- Header con nombre de la propiedad y badge de estado -->
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex-1 min-w-0">
-                            <!-- 🔹 TÍTULO CON NOMBRE DE LA PROPIEDAD -->
+                            <!-- Título con nombre -->
                             <div class="flex items-center gap-2 mb-1">
                                 <h3 class="text-lg font-bold truncate text-neutral-900">
                                     {{ property.nombre || property.type?.nombre || 'Sin nombre' }}
@@ -301,7 +299,7 @@
                                     {{ property.seo?.activa ? 'Activa' : 'Inactiva' }}
                                 </span>
                             </div>
-                            <!-- 🔹 SUBTÍTULO CON TIPO Y UBICACIÓN -->
+                            <!-- Subtítulo con tipo y ubicación -->
                             <p class="text-sm text-neutral-500">
                                 {{ property.type?.nombre || 'Sin tipo' }} •
                                 {{ property.location?.zona || 'Sin zona' }}
@@ -325,7 +323,7 @@
                         </div>
                     </div>
 
-                    <!-- 🔹 DESCRIPCIÓN (Prioriza descripcion_whatsapp) -->
+                    <!-- Descripción -->
                     <p class="mb-4 text-sm text-neutral-600 line-clamp-2">
                         {{
                             property.descripcion_whatsapp ||
@@ -392,13 +390,6 @@
                         >
                             Editar
                         </button>
-                        <!--   <button
-                            @click="duplicateProperty(property.id)"
-                            class="p-2 transition-all duration-300 border rounded-lg border-neutral-300 hover:bg-neutral-50 hover:shadow-md"
-                            title="Duplicar propiedad"
-                        >
-                            <Copy class="w-5 h-5" />
-                        </button> -->
                         <button
                             @click="confirmDelete(property)"
                             class="p-2 text-red-600 transition-all duration-300 border border-red-300 rounded-lg hover:bg-red-50 hover:shadow-md"
@@ -516,7 +507,7 @@
                                     <X class="w-6 h-6" />
                                 </button>
                             </div>
-                            <PropertyForm
+                            <PropertyFormUserAuth
                                 :property="editingProperty"
                                 @saved="onPropertySaved"
                                 @cancel="handleCloseModal"
@@ -616,15 +607,14 @@ import {
     Bath,
     Car,
     Ruler,
-    Copy,
     Trash2,
     X,
     ChevronsLeft,
     ChevronsRight,
 } from 'lucide-vue-next';
-import PropertyForm from '@/components/admin/Properties/PropertyForm.vue';
+import PropertyFormUserAuth from '@/components/admin/Properties/PropertyFormUserAuth.vue';
 import {
-    getProperties,
+    getPropertiesUserAuth,
     deleteProperty,
     getProperty,
     toggleActive,
@@ -697,7 +687,20 @@ onMounted(async () => {
 const fetchProperties = async () => {
     loading.value = true;
     try {
-        const response = await getProperties();
+        // Construir query string con filtros
+        const params = new URLSearchParams();
+
+        if (filters.buscar) params.append('buscar', filters.buscar);
+        if (filters.tipo_inmueble) params.append('tipo_inmueble', filters.tipo_inmueble);
+        if (filters.tipo_operacion) params.append('tipo_operacion', filters.tipo_operacion);
+        if (filters.estado) params.append('estado', filters.estado);
+        if (filters.activa) params.append('activa', filters.activa);
+        params.append('por_pagina', filters.por_pagina);
+        params.append('pagina', filters.pagina);
+
+        const queryString = params.toString();
+        const response = await getPropertiesUserAuth(queryString ? `?${queryString}` : '');
+
         console.log('Properties response:', response);
 
         if (Array.isArray(response.data)) {
@@ -707,6 +710,8 @@ const fetchProperties = async () => {
             if (response.data.meta) {
                 pagination.value = response.data.meta;
             }
+        } else if (response.data.datos) {
+            properties.value = response.data.datos;
         } else {
             properties.value = [];
         }
@@ -714,7 +719,7 @@ const fetchProperties = async () => {
         console.log('Properties loaded:', properties.value.length);
     } catch (error) {
         console.error('Error al cargar propiedades:', error);
-        toast.error('Error al cargar propiedades');
+        toast.error('Error al cargar tus propiedades');
         properties.value = [];
     } finally {
         loading.value = false;
@@ -840,10 +845,6 @@ const confirmDelete = property => {
     }
 };
 
-const duplicateProperty = async id => {
-    toast.info('Función de duplicar en desarrollo');
-};
-
 const clearFilters = () => {
     filters.buscar = '';
     filters.tipo_inmueble = '';
@@ -917,6 +918,7 @@ function debounce(func, wait) {
 /* Focus ring personalizado */
 input:focus,
 select:focus {
-    ring-color: v-bind('siteSettings?.color_primario || "#2563eb"');
+    outline: none;
+    border-color: transparent;
 }
 </style>

@@ -38,32 +38,18 @@
                     <!-- Social Media Icons -->
                     <div class="flex pt-2 space-x-4">
                         <a
-                            href="#"
+                            href="https://www.facebook.com/ResidenciaConsultora"
                             class="text-gray-500 transition-all duration-200 hover:text-blue-600 hover:scale-110"
                             aria-label="Facebook"
                         >
                             <Facebook :size="24" />
                         </a>
                         <a
-                            href="#"
+                            href="https://www.instagram.com/inmobiliaria.residencial/"
                             class="text-gray-500 transition-all duration-200 hover:text-pink-600 hover:scale-110"
                             aria-label="Instagram"
                         >
                             <Instagram :size="24" />
-                        </a>
-                        <a
-                            href="#"
-                            class="text-gray-500 transition-all duration-200 hover:text-sky-500 hover:scale-110"
-                            aria-label="Twitter"
-                        >
-                            <Twitter :size="24" />
-                        </a>
-                        <a
-                            href="#"
-                            class="text-gray-500 transition-all duration-200 hover:text-blue-700 hover:scale-110"
-                            aria-label="LinkedIn"
-                        >
-                            <Linkedin :size="24" />
                         </a>
                     </div>
                 </div>
@@ -100,7 +86,7 @@
                                 class="flex items-center text-sm text-gray-600 transition-all duration-200 hover:text-gray-900 hover:translate-x-1"
                             >
                                 <ChevronRight :size="16" class="mr-1" />
-                                Servicios
+                                Formulario
                             </a>
                         </li>
                         <li>
@@ -109,16 +95,7 @@
                                 class="flex items-center text-sm text-gray-600 transition-all duration-200 hover:text-gray-900 hover:translate-x-1"
                             >
                                 <ChevronRight :size="16" class="mr-1" />
-                                Nosotros
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="#"
-                                class="flex items-center text-sm text-gray-600 transition-all duration-200 hover:text-gray-900 hover:translate-x-1"
-                            >
-                                <ChevronRight :size="16" class="mr-1" />
-                                Contacto
+                                Perfil
                             </a>
                         </li>
                     </ul>
@@ -141,31 +118,42 @@
                                     :size="20"
                                     class="flex-shrink-0 mr-3 text-gray-500 transition-colors group-hover:text-blue-600"
                                 />
-                                <span>Calle Principal 123, Ciudad</span>
+                                <span>Av. Beijim y Calle Olmos, Cochabamba, Bolivia</span>
                             </a>
                         </li>
                         <li>
                             <a
-                                href="tel:+15551234567"
+                                href="tel:+59172714730"
                                 class="flex items-start text-sm text-gray-600 transition-colors duration-200 group hover:text-gray-900"
                             >
                                 <Phone
                                     :size="20"
                                     class="flex-shrink-0 mr-3 text-gray-500 transition-colors group-hover:text-blue-600"
                                 />
-                                <span>+1 (555) 123-4567</span>
+                                <span>727 14730</span>
+                            </a>
+                            <br />
+                            <a
+                                href="tel:+59169445851"
+                                class="flex items-start text-sm text-gray-600 transition-colors duration-200 group hover:text-gray-900"
+                            >
+                                <Phone
+                                    :size="20"
+                                    class="flex-shrink-0 mr-3 text-gray-500 transition-colors group-hover:text-blue-600"
+                                />
+                                <span>69445851</span>
                             </a>
                         </li>
                         <li>
                             <a
-                                href="mailto:info@inmobiliaria.com"
+                                href="mailto:contacto@residenciaconsultora.com"
                                 class="flex items-start text-sm text-gray-600 transition-colors duration-200 group hover:text-gray-900"
                             >
                                 <Mail
                                     :size="20"
                                     class="flex-shrink-0 mr-3 text-gray-500 transition-colors group-hover:text-blue-600"
                                 />
-                                <span>info@inmobiliaria.com</span>
+                                <span>contacto@residenciaconsultora.com</span>
                             </a>
                         </li>
                     </ul>
@@ -223,7 +211,7 @@
                         <span class="font-semibold text-gray-900">
                             {{ siteSettings.nombre_sitio || 'Inmobiliaria' }}
                         </span>
-                        <span class="ml-1">. Todos los derechos reservados.</span>
+                        <span class="ml-1"> Todos los derechos reservados.</span>
                     </p>
 
                     <div class="flex space-x-6">

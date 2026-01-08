@@ -1,22 +1,22 @@
 <template>
     <div>
         <!-- Header -->
-        <div class="mb-6">
-            <h3 class="flex items-center text-2xl font-bold text-gray-800 sm:text-3xl">
-                <MapPin :size="22" class="mr-2 sm:w-6 sm:h-6" />
+        <div class="mb-4 sm:mb-6">
+            <h3 class="flex items-center text-xl font-bold text-gray-800 sm:text-2xl">
+                <MapPin :size="20" class="mr-2 sm:w-6 sm:h-6" />
                 Ubicación
             </h3>
         </div>
 
-        <!-- Información de ubicación en tarjetas -->
-        <div class="p-4 mb-6 bg-white shadow-sm sm:p-6 rounded-xl">
+        <!-- Información de ubicación -->
+        <div class="p-4 mb-4 bg-white border border-gray-200 shadow-sm sm:p-6 sm:mb-6 rounded-xl">
             <div class="space-y-3 sm:space-y-4">
                 <div v-if="location?.direccion_completa" class="flex items-start gap-2.5 sm:gap-3">
                     <div
                         class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                         :style="{ backgroundColor: primaryColor + '15' }"
                     >
-                        <MapPin :size="18" class="sm:w-5 sm:h-5" :style="{ color: primaryColor }" />
+                        <MapPin :size="18" :style="{ color: primaryColor }" />
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 sm:text-base">Dirección</p>
@@ -31,11 +31,7 @@
                         class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                         :style="{ backgroundColor: primaryColor + '15' }"
                     >
-                        <Building
-                            :size="18"
-                            class="sm:w-5 sm:h-5"
-                            :style="{ color: primaryColor }"
-                        />
+                        <Building :size="18" :style="{ color: primaryColor }" />
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 sm:text-base">Zona</p>
@@ -48,7 +44,7 @@
                         class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                         :style="{ backgroundColor: primaryColor + '15' }"
                     >
-                        <Globe :size="18" class="sm:w-5 sm:h-5" :style="{ color: primaryColor }" />
+                        <Globe :size="18" :style="{ color: primaryColor }" />
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 sm:text-base">Ciudad</p>
@@ -66,11 +62,7 @@
                         class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                         :style="{ backgroundColor: primaryColor + '15' }"
                     >
-                        <Navigation
-                            :size="18"
-                            class="sm:w-5 sm:h-5"
-                            :style="{ color: primaryColor }"
-                        />
+                        <Navigation :size="18" :style="{ color: primaryColor }" />
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="text-sm font-semibold text-gray-800 sm:text-base">Coordenadas</p>
@@ -82,9 +74,7 @@
             </div>
 
             <!-- Google Maps Embed -->
-            <div
-                class="mt-4 overflow-hidden bg-gray-200 rounded-lg shadow-inner sm:mt-6 h-80 sm:h-96"
-            >
+            <div class="mt-4 overflow-hidden bg-gray-200 rounded-lg h-80 sm:mt-6 sm:h-96">
                 <iframe
                     v-if="mapEmbedUrl"
                     :src="mapEmbedUrl"
@@ -100,14 +90,15 @@
                 <!-- Fallback: Sin ubicación -->
                 <div v-else class="relative w-full h-full">
                     <img
-                        src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"
+                        src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5ce?w=800&q=80"
                         alt="Mapa de ubicación no disponible"
                         class="object-cover w-full h-full"
                         loading="lazy"
+                        decoding="async"
                     />
                     <div class="absolute inset-0 flex items-center justify-center bg-black/50">
                         <div class="px-4 text-center">
-                            <MapPin :size="48" class="mx-auto mb-3 text-white sm:w-16 sm:h-16" />
+                            <MapPin :size="48" class="mx-auto mb-3 text-white" />
                             <p class="text-sm font-semibold text-white sm:text-base">
                                 Ubicación no disponible en el mapa
                             </p>
@@ -123,58 +114,58 @@
                     :href="googleMapsUrl"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white transition-all rounded-lg shadow-md sm:text-base hover:opacity-90 hover:shadow-lg active:scale-95"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-white rounded-lg sm:text-base active:scale-95"
                     :style="{ backgroundColor: primaryColor }"
                 >
-                    <ExternalLink :size="16" class="sm:w-5 sm:h-5" />
+                    <ExternalLink :size="16" />
                     Ver en Google Maps
                 </a>
 
                 <button
                     v-if="hasValidCoordinates"
                     @click="getDirections"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-gray-700 transition-all bg-white border-2 border-gray-300 rounded-lg shadow-sm sm:text-base hover:bg-gray-50 hover:border-gray-400 hover:shadow-md active:scale-95"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg sm:text-base active:scale-95"
                 >
-                    <Navigation :size="16" class="sm:w-5 sm:h-5" />
+                    <Navigation :size="16" />
                     Cómo llegar
                 </button>
 
                 <button
                     v-if="hasValidCoordinates"
                     @click="shareLocation"
-                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold transition-all rounded-lg shadow-sm sm:text-base active:scale-95"
+                    class="inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg sm:text-base active:scale-95"
                     :class="
                         copiedLocation
                             ? 'bg-green-100 text-green-700 border-2 border-green-500'
-                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300 hover:bg-gray-200'
+                            : 'bg-gray-100 text-gray-700 border-2 border-gray-300'
                     "
                 >
-                    <Check v-if="copiedLocation" :size="16" class="sm:w-5 sm:h-5" />
-                    <Share2 v-else :size="16" class="sm:w-5 sm:h-5" />
-                    <span>{{ copiedLocation ? '¡Copiado!' : 'Compartir ubicación' }}</span>
+                    <Check v-if="copiedLocation" :size="16" />
+                    <Share2 v-else :size="16" />
+                    <span>{{ copiedLocation ? '¡Copiado!' : 'Compartir' }}</span>
                 </button>
             </div>
         </div>
 
-        <!-- Referencias (si existen) -->
+        <!-- Referencias -->
         <div
             v-if="location?.referencias"
-            class="p-4 mb-6 bg-white border-l-4 shadow-sm sm:p-6 rounded-xl"
-            :style="{ borderColor: primaryColor }"
+            class="p-4 bg-white border-l-4 border-gray-200 shadow-sm sm:p-6 rounded-xl"
+            :style="{ borderLeftColor: primaryColor }"
         >
             <div class="flex items-start gap-3">
                 <div
                     class="flex items-center justify-center flex-shrink-0 w-10 h-10 rounded-lg sm:w-12 sm:h-12"
                     :style="{ backgroundColor: primaryColor + '15' }"
                 >
-                    <Info :size="18" class="sm:w-5 sm:h-5" :style="{ color: primaryColor }" />
+                    <Info :size="18" :style="{ color: primaryColor }" />
                 </div>
                 <div class="flex-1 min-w-0">
                     <p
                         class="text-sm font-semibold uppercase sm:text-base"
                         :style="{ color: primaryColor }"
                     >
-                        Referencias de la ubicación
+                        Referencias
                     </p>
                     <p
                         class="mt-1 text-sm leading-relaxed text-gray-700 whitespace-pre-wrap sm:text-base"
@@ -213,7 +204,7 @@ const props = defineProps({
 
 const copiedLocation = ref(false);
 
-// Función para extraer coordenadas de URL de Google Maps
+// Extraer coordenadas de URL de Google Maps
 const extractCoordinatesFromUrl = url => {
     if (!url) return null;
 
@@ -237,7 +228,7 @@ const extractCoordinatesFromUrl = url => {
     return null;
 };
 
-// Verificar si hay coordenadas válidas
+// Verificar coordenadas válidas
 const hasValidCoordinates = computed(() => {
     if (props.location?.latitude && props.location?.longitude) {
         return true;
@@ -246,7 +237,7 @@ const hasValidCoordinates = computed(() => {
     return coords !== null;
 });
 
-// Obtener coordenadas (de campos directos o de URL)
+// Obtener coordenadas
 const getCoordinates = computed(() => {
     if (props.location?.latitude && props.location?.longitude) {
         return {
@@ -272,7 +263,7 @@ const mapEmbedUrl = computed(() => {
         return `https://maps.google.com/maps?q=${coords.lat},${coords.lng}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
     }
 
-    // Fallback: usar dirección como búsqueda
+    // Fallback: usar dirección
     const loc = props.location;
     const address = [
         loc?.direccion_completa || loc?.direccion,
@@ -290,7 +281,7 @@ const mapEmbedUrl = computed(() => {
     return `https://maps.google.com/maps?q=${encodedAddress}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
 });
 
-// URL para abrir en Google Maps
+// URL para Google Maps
 const googleMapsUrl = computed(() => {
     const coords = getCoordinates.value;
     if (coords) {
@@ -342,10 +333,18 @@ const shareLocation = async () => {
     }
 };
 
-// Copiar al portapapeles
-const copyToClipboard = async text => {
+// Copiar al portapapeles - WebView compatible
+const copyToClipboard = text => {
+    // Fallback para WebView Android
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    document.body.appendChild(textArea);
+    textArea.select();
+
     try {
-        await navigator.clipboard.writeText(text);
+        document.execCommand('copy');
         copiedLocation.value = true;
 
         setTimeout(() => {
@@ -353,35 +352,44 @@ const copyToClipboard = async text => {
         }, 2000);
     } catch (err) {
         console.error('Error al copiar:', err);
-        alert('No se pudo copiar el enlace. Por favor, intenta nuevamente.');
     }
+
+    document.body.removeChild(textArea);
 };
 </script>
 
 <style scoped>
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
 .whitespace-pre-wrap {
     white-space: pre-wrap;
     word-wrap: break-word;
 }
 
-/* Touch optimization */
-* {
-    -webkit-tap-highlight-color: transparent;
+/* Botones touch-friendly */
+button,
+a {
+    min-height: 44px;
 }
 
-/* Loading skeleton para iframe */
+/* Remover hover effects en mobile */
+@media (hover: hover) {
+    button:hover,
+    a:hover {
+        opacity: 0.9;
+    }
+}
+
+/* Simplificar animaciones */
+button:active,
+a:active {
+    transform: scale(0.98);
+}
+
+/* Iframe sin animación de loading compleja */
 iframe {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s ease-in-out infinite;
-}
-
-@keyframes loading {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
+    background-color: #f0f0f0;
 }
 </style>

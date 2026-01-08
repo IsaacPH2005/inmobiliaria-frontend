@@ -4,18 +4,21 @@
             <!-- 🔹 PRIMEROS INPUTS: Código Interno y Nombre -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Código Interno <span class="text-red-500">*</span>
+                    Código Interno
                 </label>
                 <input
                     v-model="form.codigo_interno"
-                    placeholder="Ej: PROP-2025-001"
+                    placeholder="Ej: PROP-2025-001 (Opcional, se genera automáticamente)"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+                <p class="mt-1 text-xs text-neutral-500">
+                    Se generará automáticamente si se deja vacío
+                </p>
             </div>
 
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Nombre de la Propiedad <span class="text-red-500">*</span>
+                    Nombre de la Propiedad
                 </label>
                 <input
                     v-model="form.nombre"
@@ -27,7 +30,7 @@
             <!-- Información básica -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Tipo de Inmueble <span class="text-red-500">*</span>
+                    Tipo de Inmueble
                 </label>
                 <select
                     v-model="form.property_type_id"
@@ -41,9 +44,7 @@
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Operación <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Operación </label>
                 <select
                     v-model="form.operation_type_id"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -55,24 +56,8 @@
                 </select>
             </div>
 
-            <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Agente <span class="text-red-500">*</span>
-                </label>
-                <select
-                    v-model="form.user_id"
-                    class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                >
-                    <option value="">Seleccionar agente</option>
-                    <option v-for="agent in agentsList" :key="agent.id" :value="agent.id">
-                        {{ agent.general_data?.nombre || agent.email }}
-                        {{ agent.general_data?.apellido || '' }}
-                    </option>
-                </select>
-            </div>
-
             <!-- 🔹 NUEVO: Enlace Google Drive -->
-            <div>
+            <div class="md:col-span-2">
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
                     📁 Enlace Google Drive
                 </label>
@@ -86,21 +71,18 @@
 
             <!-- Precio y moneda -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Precio <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Precio </label>
                 <input
                     v-model.number="form.precio"
                     type="number"
                     step="0.01"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    placeholder="150000"
                 />
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Moneda <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Moneda </label>
                 <select
                     v-model="form.currency_id"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -124,6 +106,7 @@
                     v-model.number="form.precio_alquiler"
                     type="number"
                     step="0.01"
+                    placeholder="2000"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -131,7 +114,7 @@
             <!-- 🔹 MODIFICADO: Departamento y Ciudad con selects de Bolivia -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Departamento <span class="text-red-500">*</span>
+                    Departamento
                 </label>
                 <select
                     v-model="form.departamento"
@@ -146,9 +129,7 @@
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Ciudad <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Ciudad </label>
                 <select
                     v-model="form.ciudad"
                     :disabled="!form.departamento"
@@ -168,21 +149,19 @@
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Zona <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Zona </label>
                 <input
                     v-model="form.zona"
+                    placeholder="Ej: Zona Norte"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <div class="md:col-span-2">
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Dirección <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Dirección </label>
                 <input
                     v-model="form.direccion"
+                    placeholder="Av. Principal #123"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -193,6 +172,7 @@
                 </label>
                 <input
                     v-model="form.direccion_completa"
+                    placeholder="Información adicional de la dirección"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -250,12 +230,13 @@
             <!-- Características -->
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Superficie Total (m²) <span class="text-red-500">*</span>
+                    Superficie Total (m²)
                 </label>
                 <input
                     v-model.number="form.superficie_total"
                     type="number"
                     step="0.01"
+                    placeholder="250"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -268,54 +249,57 @@
                     v-model.number="form.superficie_construida"
                     type="number"
                     step="0.01"
+                    placeholder="200"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Habitaciones <span class="text-red-500">*</span>
+                    Habitaciones
                 </label>
                 <input
                     v-model.number="form.habitaciones"
                     type="number"
                     min="0"
+                    placeholder="3"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Baños <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Baños </label>
                 <input
                     v-model.number="form.baños"
                     type="number"
                     min="0"
+                    placeholder="2"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Medios Baños <span class="text-red-500">*</span>
+                    Medios Baños
                 </label>
                 <input
                     v-model.number="form.medio_baños"
                     type="number"
                     min="0"
+                    placeholder="1"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <div>
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Estacionamientos <span class="text-red-500">*</span>
+                    Estacionamientos
                 </label>
                 <input
                     v-model.number="form.estacionamientos"
                     type="number"
                     min="0"
+                    placeholder="2"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -326,6 +310,7 @@
                     v-model.number="form.pisos"
                     type="number"
                     min="0"
+                    placeholder="2"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -338,6 +323,7 @@
                     v-model.number="form.piso_ubicacion"
                     type="number"
                     min="0"
+                    placeholder="3"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -350,15 +336,14 @@
                     v-model.number="form.antiguedad"
                     type="number"
                     min="0"
+                    placeholder="5"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
 
             <!-- Estado y condición -->
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Estado <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Estado </label>
                 <select
                     v-model="form.status_id"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -371,9 +356,7 @@
             </div>
 
             <div>
-                <label class="block mb-1 text-sm font-medium text-neutral-700">
-                    Condición <span class="text-red-500">*</span>
-                </label>
+                <label class="block mb-1 text-sm font-medium text-neutral-700"> Condición </label>
                 <select
                     v-model="form.condition_id"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
@@ -421,6 +404,7 @@
                 <textarea
                     v-model="form.notas_internas"
                     rows="2"
+                    placeholder="Notas privadas..."
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 ></textarea>
             </div>
@@ -430,7 +414,7 @@
                 <label class="block mb-1 text-sm font-medium text-neutral-700">
                     Características Adicionales
                 </label>
-                <div class="grid grid-cols-2 gap-2 mt-2">
+                <div class="grid grid-cols-2 gap-2 mt-2 md:grid-cols-3">
                     <label
                         v-for="feature in featuresList"
                         :key="feature.id"
@@ -452,8 +436,10 @@
                 <label class="block mb-1 text-sm font-medium text-neutral-700"> Slug </label>
                 <input
                     v-model="form.slug"
+                    placeholder="casa-moderna-zona-sur"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+                <p class="mt-1 text-xs text-neutral-500">Se generará automáticamente del nombre</p>
             </div>
 
             <div>
@@ -462,6 +448,7 @@
                     v-model.number="form.orden"
                     type="number"
                     min="0"
+                    placeholder="0"
                     class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
             </div>
@@ -525,7 +512,7 @@
                 <label for="activa" class="text-sm font-medium text-neutral-700"> Activa </label>
             </div>
 
-            <!-- Imágenes - MEJORADO -->
+            <!-- Imágenes - MEJORADO CON SOPORTE PARA EDICIÓN -->
             <div class="md:col-span-2">
                 <label class="block mb-2 text-sm font-medium text-neutral-700">
                     Imágenes
@@ -534,7 +521,7 @@
                     </span>
                 </label>
 
-                <!-- Imágenes existentes y nuevas -->
+                <!-- Imágenes (existentes y nuevas) -->
                 <div v-if="images.length > 0" class="grid grid-cols-2 gap-4 mb-4 md:grid-cols-4">
                     <div
                         v-for="(img, index) in images"
@@ -564,26 +551,20 @@
                                 </button>
                             </div>
 
-                            <!-- Badge para imágenes existentes -->
+                            <!-- Badge para imagen existente o nueva -->
                             <div
-                                v-if="img.existing"
-                                class="absolute top-0 right-0 px-2 py-1 text-xs font-semibold text-white bg-blue-500 rounded-bl-lg"
+                                :class="[
+                                    'absolute top-0 right-0 px-2 py-1 text-xs font-semibold text-white rounded-bl-lg',
+                                    img.existing ? 'bg-blue-500' : 'bg-green-500',
+                                ]"
                             >
-                                Existente
-                            </div>
-
-                            <!-- Badge para imágenes nuevas -->
-                            <div
-                                v-else
-                                class="absolute top-0 right-0 px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded-bl-lg"
-                            >
-                                Nueva
+                                {{ img.existing ? 'Existente' : 'Nueva' }}
                             </div>
                         </div>
 
                         <!-- Nombre del archivo -->
                         <p class="mt-1 text-xs text-center text-gray-500 truncate">
-                            {{ img.file?.name || img.preview.split('/').pop() }}
+                            {{ img.file?.name || img.image_name || 'Sin nombre' }}
                         </p>
                     </div>
                 </div>
@@ -613,7 +594,7 @@
                                     : 'Arrastra imágenes o haz clic para seleccionar'
                             }}
                         </p>
-                        <p class="mt-1 text-xs text-gray-500">Máximo 2MB por imagen</p>
+                        <p class="mt-1 text-xs text-gray-500">Máximo 20MB por imagen</p>
                     </button>
                 </div>
             </div>
@@ -660,14 +641,16 @@
 import { ref, reactive, onMounted, watch, computed } from 'vue';
 import { Upload, X, MapPin } from 'lucide-vue-next';
 import { useToast } from 'vue-toastification';
-import { createProperty, updateProperty } from '@/services/PropertiesService';
+import { createPropertyUserAuth, updatePropertyUserAuth } from '@/services/PropertiesService';
 import { getFeaturesActives } from '@/services/FeaturesPropertyService';
 import { getConditionPropertyActives } from '@/services/ConditionPropertyService';
 import { getStatusesPropertyActives } from '@/services/StatusesPropertyService';
 import { getOperationTypesActives } from '@/services/OperationPropertyService';
 import { getCurrencyPropertyActives } from '@/services/CurrencyPropertyService';
 import { getTypesPropertyActives } from '@/services/TyperPropertyService';
-import { getUsersActives } from '@/services/UserService';
+
+// 🔥 AGREGAR ESTA IMPORTACIÓN
+const urlBase = import.meta.env.VITE_API_URL;
 
 const props = defineProps(['property']);
 const emit = defineEmits(['saved', 'cancel']);
@@ -682,7 +665,6 @@ const statusesList = ref([]);
 const operationTypesList = ref([]);
 const currenciesList = ref([]);
 const typesPropertyList = ref([]);
-const agentsList = ref([]);
 
 // 🔹 DATOS DE BOLIVIA: Departamentos y ciudades
 const departamentos = ref([
@@ -817,12 +799,11 @@ const citiesByDepartment = computed(() => {
 const form = reactive({
     property_type_id: '',
     operation_type_id: '',
-    user_id: '',
     codigo_interno: '',
-    nombre: '', // 🔹 NUEVO
-    enlace: '', // 🔹 NUEVO: Google Drive
-    descripcion_facebook: '', // 🔹 RENOMBRADO
-    descripcion_whatsapp: '', // 🔹 RENOMBRADO
+    nombre: '',
+    enlace: '',
+    descripcion_facebook: '',
+    descripcion_whatsapp: '',
     notas_internas: '',
     precio: 0,
     currency_id: '',
@@ -857,6 +838,22 @@ const form = reactive({
 const images = ref([]);
 const imagesToDelete = ref([]);
 
+// 🔥 FUNCIÓN HELPER PARA CONSTRUIR URL DE IMAGEN
+const getImageUrl = imagePath => {
+    if (!imagePath) return '';
+
+    // Si la URL ya es completa (empieza con http:// o https://), retornarla tal cual
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+        return imagePath;
+    }
+
+    // Si la ruta empieza con /, quitarla para evitar doble slash
+    const cleanPath = imagePath.startsWith('/') ? imagePath.slice(1) : imagePath;
+
+    // Construir URL completa
+    return `${urlBase}/${cleanPath}`;
+};
+
 // Validar URL de Google Maps
 const isValidGoogleMapsUrl = computed(() => {
     if (!form.google_maps_url) return false;
@@ -886,7 +883,6 @@ const getMapEmbedUrl = computed(() => {
 
 // Función para actualizar las ciudades cuando se selecciona un departamento
 const updateCities = () => {
-    // Limpiar la ciudad seleccionada cuando cambia el departamento
     form.ciudad = '';
 };
 
@@ -1030,25 +1026,11 @@ const listTypesPropertyActives = async () => {
     }
 };
 
-// Listar agentes
-const listAgentsActives = async () => {
-    try {
-        const { data } = await getUsersActives();
-        agentsList.value = data.data || [];
-    } catch (error) {
-        console.error('Error al cargar agentes:', error);
-    }
-};
-
 const saveProperty = async () => {
     saving.value = true;
 
     try {
         const formDataObj = new FormData();
-
-        if (props.property) {
-            formDataObj.append('_method', 'PUT');
-        }
 
         Object.keys(form).forEach(key => {
             if (key === 'additional_features') {
@@ -1087,10 +1069,10 @@ const saveProperty = async () => {
 
         let response;
         if (props.property) {
-            response = await updateProperty(props.property.id, formDataObj);
+            response = await updatePropertyUserAuth(props.property.id, formDataObj);
             console.log(response);
         } else {
-            response = await createProperty(formDataObj);
+            response = await createPropertyUserAuth(formDataObj);
             console.log(response);
         }
 
@@ -1119,25 +1101,25 @@ onMounted(async () => {
         listOperationTypes(),
         listCurrencies(),
         listTypesPropertyActives(),
-        listAgentsActives(),
     ]);
 });
 
-// Watch para cargar datos de la propiedad cuando se está editando
+// 🔥 WATCH CORREGIDO CON getImageUrl
 watch(
     () => props.property,
     newProperty => {
         if (newProperty) {
+            console.log('📦 Propiedad recibida:', newProperty);
+
             imagesToDelete.value = [];
 
             form.property_type_id = newProperty.property_type_id || '';
             form.operation_type_id = newProperty.operation_type_id || '';
-            form.user_id = newProperty.user_id || '';
             form.codigo_interno = newProperty.codigo_interno || '';
-            form.nombre = newProperty.nombre || ''; // 🔹 NUEVO
-            form.enlace = newProperty.enlace || ''; // 🔹 NUEVO
-            form.descripcion_facebook = newProperty.descripcion_facebook || ''; // 🔹 RENOMBRADO
-            form.descripcion_whatsapp = newProperty.descripcion_whatsapp || ''; // 🔹 RENOMBRADO
+            form.nombre = newProperty.nombre || '';
+            form.enlace = newProperty.enlace || '';
+            form.descripcion_facebook = newProperty.descripcion_facebook || '';
+            form.descripcion_whatsapp = newProperty.descripcion_whatsapp || '';
             form.notas_internas = newProperty.notas_internas || '';
 
             if (newProperty.price) {
@@ -1185,14 +1167,23 @@ watch(
 
             form.additional_features = newProperty.additional_features?.map(f => f.id) || [];
 
+            // 🔥 CORRECCIÓN: Construir URLs completas de imágenes
             if (newProperty.images && newProperty.images.length > 0) {
-                images.value = newProperty.images.map(img => ({
-                    id: img.id,
-                    preview: img.image_url,
-                    existing: true,
-                }));
+                images.value = newProperty.images.map(img => {
+                    const fullUrl = getImageUrl(img.image_url);
+                    console.log(`🖼️ Imagen ${img.id}:`, fullUrl);
+
+                    return {
+                        id: img.id,
+                        preview: fullUrl,
+                        existing: true,
+                    };
+                });
+
+                console.log('✅ Imágenes cargadas:', images.value.length);
             } else {
                 images.value = [];
+                console.log('⚠️ Sin imágenes');
             }
         } else {
             resetForm();

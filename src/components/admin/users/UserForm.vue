@@ -588,6 +588,7 @@ const fetchRoles = async () => {
     try {
         const response = await getRoles();
         availableRoles.value = response.data.data;
+        console.log(availableRoles.value);
     } catch (error) {
         console.error('Error al cargar roles:', error);
         toast.error('Error al cargar los roles');
